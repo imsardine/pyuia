@@ -105,11 +105,11 @@ class PageObject(object):
                     'an element.', locator, exc_info=True)
                 element = None
             if not element:
-                _consult_handlers(handlers)
+                _consult_handlers(handlers, self._not_found_exceptions)
                 assert False, locator # None or empty sequence
 
             if check_visibility and not self._is_displayed(element):
-                _consult_handlers(handlers)
+                _consult_handlers(handlers, self._not_found_exceptions)
                 assert False, locator
             elements.append(element)
 
@@ -134,7 +134,7 @@ class PageObject(object):
             if check_visibility and not self._is_displayed(element): continue
             return element
 
-        _consult_handlers(handlers)
+        _consult_handlers(handlers, self._not_found_exceptions)
         assert False, locators
 
     def _assert_any_visible(self, locators, handlers=None):
@@ -172,7 +172,7 @@ class PageObject(object):
                     'check_visibility = [%s], time elapsed = [%s]s.',
                     locators, check_visibility, time.time() - start_time,
                     level=logging.WARN)
-            _consult_handlers(handlers)
+            _consult_handlers(handlers, self._not_found_exceptions)
 
             time.sleep(_WAIT_INTERVAL)
             if time.time() > timeout:
@@ -209,7 +209,7 @@ class PageObject(object):
                 self._log_screenshot(
                     'Wait ANY present. locators = %s, time elapsed = [%s]s.',
                     locators, time.time() - start_time, level=logging.WARN)
-            _consult_handlers(handlers)
+            _consult_handlers(handlers, self._not_found_exceptions)
 
             time.sleep(_WAIT_INTERVAL)
             if time.time() > timeout:
@@ -233,7 +233,7 @@ class PageObject(object):
         while True:
             # to avoid the situation that elements are absent simply because
             # other elements such as error dialogs are displayed.
-            _consult_handlers(handlers)
+            _consult_handlers(handlers, self._not_found_exceptions)
             any_invalid = False
             for locator in locators:
                 try:
@@ -273,16 +273,16 @@ class PageObject(object):
     def _handle_conditional_views(self, handlers, duration=5):
         timeout = time.time() + duration
         while True:
-            _consult_handlers(handlers)
+            _consult_handlers(handlers, self._not_found_exceptions)
             if time.time() > timeout: break
 
-def _consult_handlers(handlers):
+def _consult_handlers(handlers, not_found_exceptions):
     if handlers is None: return
 
     for locator, handler in handlers.items():
         try:
             element = locator()
-        except self._not_found_exceptions as e:
+        except not_found_exceptions as e:
             _logger.debug(
                 'Consult handlers. The locator (%s) did not resolve to an element.',
                 locator, exc_info=True)
