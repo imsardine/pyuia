@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
+
+    <title>PyUIA by imsardine</title>
+  </head>
+
+  <body>
+
+    <header>
+      <div class="container">
+        <h1>PyUIA</h1>
+        <h2>A library aiming to facilitate the implementation of UI test automation with Python.</h2>
+
+        <section id="downloads">
+          <a href="https://github.com/imsardine/pyuia/zipball/master" class="btn">Download as .zip</a>
+          <a href="https://github.com/imsardine/pyuia/tarball/master" class="btn">Download as .tar.gz</a>
+          <a href="https://github.com/imsardine/pyuia" class="btn btn-github"><span class="icon"></span>View on GitHub</a>
+        </section>
+      </div>
+    </header>
+
+    <div class="container">
+      <section id="main_content">
+        <h1>
+<a id="pyuia" class="anchor" href="#pyuia" aria-hidden="true"><span class="octicon octicon-link"></span></a>PyUIA</h1>
+
+<p>PyUIA stands for Python UI Automation. It is a library/framework aiming to facilitate the implementation of UI test automation on various platforms, including mobile and desktop OSs.</p>
+
+<p>UI test automation is brittle to (inevitable) changes in UI. PyUIA emphasizes <a href="http://en.wikipedia.org/wiki/Keyword-driven_testing">keyword-driven testing approach</a> and <a href="http://martinfowler.com/bliki/PageObject.html">Page Object Pattern</a>, and that results in test code organized in a more manageable way that scales.</p>
+
+<p>The diagram below indicates where PyUIA fits into.</p>
+
+<pre><code>.------------------------.
+|      Requirements      |
+|------------------------|
+|        Keywords        |
+'------------------------'
+                           ---.
+.------------------------.    |
+|      Keyword Impl.     |    |
+'----------/---\---------'    |
+         /       \            |
+.-------v---. .---v------.     &gt; Where PyUIA fits into
+| Page Obj. | | Page Obj.|    |
+| (Android) | |  (iOS)   |    |
+'-----------' '----------'    |
+                           ---' 
+.------------------------.
+|      Testing Tools     |
+|------------------------|
+| Application Under Test |
+'------------------------'
+</code></pre>
+
+<p>For a real example about how PyUIA works with WordPress for Android, refer to <a href="https://github.com/imsardine/pyuia-example-wordpress">imsardine/pyuia-example-wordpress</a>. Here is the <a href="https://cdn.rawgit.com/imsardine/pyuia-example-wordpress/master/output/log.html">testing result</a> worth looking at. Do not miss embedded screenshots and SEPERATED device logs collected during each keyword execution.</p>
+
+<h2>
+<a id="installation" class="anchor" href="#installation" aria-hidden="true"><span class="octicon octicon-link"></span></a>Installation</h2>
+
+<p>If you have Python with Pip or EasyInstall installed, simply run:</p>
+
+<div class="highlight highlight-shell"><pre>pip install pyuia</pre></div>
+
+<p>or</p>
+
+<div class="highlight highlight-shell"><pre>easy_install install pyuia</pre></div>
+
+<p>Alternatively, if you perfer to install it from source, just clone the repository and run:</p>
+
+<div class="highlight highlight-shell"><pre>python setup install</pre></div>
+
+<h2>
+<a id="robot-framework-keyword-implementation" class="anchor" href="#robot-framework-keyword-implementation" aria-hidden="true"><span class="octicon octicon-link"></span></a>Robot Framework Keyword Implementation</h2>
+
+<ul>
+<li>
+<code>pyuia.robot.BaseAppLibrary</code> - A base class for creating AN <em>Application Library</em> for your app.</li>
+<li>
+<code>pyuia.robot.BasePageLibrary</code> - A base class for creating <em>Page/Screen Libraries</em> for each page/screen (object) you are going to model.</li>
+</ul>
+
+<h2>
+<a id="page-object-implementation" class="anchor" href="#page-object-implementation" aria-hidden="true"><span class="octicon octicon-link"></span></a>Page Object Implementation</h2>
+
+<ul>
+<li>
+<code>pyuia.PageObject</code> - A generic (technology-independent) implementation of Page Object Pattern. It provides several utility methods for asserting/waiting the presence/absence of UI elements.</li>
+<li>
+<code>pyuia.selenium.SeleniumPageObject</code> - A base class for creating page objects that drive Selenium internally.</li>
+<li>
+<code>pyuia.appium.AppiumPageObject</code> -  A base class for creating page objects that drive Appium internally.</li>
+</ul>
+
+<h2>
+<a id="license" class="anchor" href="#license" aria-hidden="true"><span class="octicon octicon-link"></span></a>License</h2>
+
+<p>MIT</p>
+      </section>
+    </div>
+
+    
+  </body>
+</html>
