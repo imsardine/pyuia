@@ -33,14 +33,13 @@ def _to_iterable(obj):
 
 _WAIT_INTERVAL = 1
 
-_WAIT_TIMEOUT = 60
-
-_WARN_TIMEOUT = 10
-
 _NOT_FOUND_EXCEPTIONS = (ElementNotFoundError,)
 
 class PageObject(object):
 
+    _PAGE_WARN_TIMEOUT = 10
+    _PAGE_WAIT_TIMEOUT = 60
+    
     def __init__(self, context, not_found_exceptions):
         self._context = context
 
@@ -58,7 +57,14 @@ class PageObject(object):
         if wait_for_loaded: page.wait_for_page_loaded()
         return page
 
-    def wait_for_page_loaded(self, timeout_warn=_WARN_TIMEOUT, timeout=_WAIT_TIMEOUT):
+    def wait_for_page_loaded(self, timeout_warn=None, timeout=None):
+        """Defalt timeout_warn is assigned by _PAGE_WARN_TIMEOUT
+        Defalt timeout is assigned by _PAGE_WAIT_TIMEOUT"""
+        if not timeout_warn: 
+            timeout_warn = self._PAGE_WARN_TIMEOUT
+        if not timeout:
+            timeout = self._PAGE_WAIT_TIMEOUT
+
         start_time = time.time()
         timeout_warn = start_time + timeout_warn
         timeout = start_time + timeout
@@ -143,8 +149,15 @@ class PageObject(object):
     def _assert_any_visible(self, locators, handlers=None):
         return self._assert_any_present(locators, handlers, check_visibility=True)
 
-    def _wait_present(self, locators, timeout_warn=_WARN_TIMEOUT, handlers=None,
-                      timeout=_WAIT_TIMEOUT, check_visibility=False):
+    def _wait_present(self, locators, timeout_warn=None, handlers=None,
+                      timeout=None, check_visibility=False):
+        """Defalt timeout_warn is assigned by _PAGE_WARN_TIMEOUT
+        Defalt timeout is assigned by _PAGE_WAIT_TIMEOUT"""
+        if not timeout_warn: 
+            timeout_warn = self._PAGE_WARN_TIMEOUT
+        if not timeout:
+            timeout = self._PAGE_WAIT_TIMEOUT
+
         start_time = time.time()
         timeout_warn = start_time + timeout_warn
         timeout = start_time + timeout
@@ -184,11 +197,25 @@ class PageObject(object):
                     'check_visibility = [%s], time elapsed = [%s]s.' %
                     (locators, check_visibility, time.time() - start_time))
 
-    def _wait_visible(self, locators, timeout_warn=_WARN_TIMEOUT, handlers=None, timeout=_WAIT_TIMEOUT):
+    def _wait_visible(self, locators, timeout_warn=None, handlers=None, timeout=None):
+        """Defalt timeout_warn is assigned by _PAGE_WARN_TIMEOUT
+        Defalt timeout is assigned by _PAGE_WAIT_TIMEOUT"""
+        if not timeout_warn: 
+            timeout_warn = self._PAGE_WARN_TIMEOUT
+        if not timeout:
+            timeout = self._PAGE_WAIT_TIMEOUT  
+
         return self._wait_present(locators, timeout_warn, handlers, timeout, check_visibility=True)
 
-    def _wait_any_present(self, locators, timeout_warn=_WARN_TIMEOUT, handlers=None,
-                          timeout=_WAIT_TIMEOUT, check_visibility=False):
+    def _wait_any_present(self, locators, timeout_warn=None, handlers=None,
+                          timeout=None, check_visibility=False):
+        """Defalt timeout_warn is assigned by _PAGE_WARN_TIMEOUT
+        Defalt timeout is assigned by _PAGE_WAIT_TIMEOUT"""
+        if not timeout_warn: 
+            timeout_warn = self._PAGE_WARN_TIMEOUT
+        if not timeout:
+            timeout = self._PAGE_WAIT_TIMEOUT
+
         start_time = time.time()
         timeout_warn = start_time + timeout_warn
         timeout = start_time + timeout
@@ -221,12 +248,26 @@ class PageObject(object):
                     'check_visibility = [%s], time elapsed = [%s]s.' %
                     (locators, check_visibility, time.time() - start_time))
 
-    def _wait_any_visible(self, locators, timeout_warn=_WARN_TIMEOUT, handlers=None,
-                          timeout=_WAIT_TIMEOUT):
+    def _wait_any_visible(self, locators, timeout_warn=None, handlers=None,
+                          timeout=None):
+        """Defalt timeout_warn is assigned by _PAGE_WARN_TIMEOUT
+        Defalt timeout is assigned by _PAGE_WAIT_TIMEOUT"""
+        if not timeout_warn: 
+            timeout_warn = self._PAGE_WARN_TIMEOUT
+        if not timeout:
+            timeout = self._PAGE_WAIT_TIMEOUT
+
         return self._wait_any_present(locators, timeout_warn, handlers, timeout, check_visibility=True)
 
-    def _wait_absent(self, locators, timeout_warn=_WARN_TIMEOUT, minwait=3,
-                     handlers=None, timeout=_WAIT_TIMEOUT, check_visibility_only=False):
+    def _wait_absent(self, locators, timeout_warn=None, minwait=3,
+                     handlers=None, timeout=None, check_visibility_only=False):
+        """Defalt timeout_warn is assigned by _PAGE_WARN_TIMEOUT
+        Defalt timeout is assigned by _PAGE_WAIT_TIMEOUT"""
+        if not timeout_warn: 
+            timeout_warn = self._PAGE_WARN_TIMEOUT
+        if not timeout:
+            timeout = self._PAGE_WAIT_TIMEOUT
+
         start_time = time.time()
         timeout_appear = start_time + minwait
         timeout_warn = start_time + timeout_warn
@@ -269,8 +310,15 @@ class PageObject(object):
                     'check_visibility_only = [%s], time elapsed = [%s]s.' %
                     (locators, check_visibility_only, time.time() - start_time))
 
-    def _wait_invisible(self, locators, timeout_warn=_WARN_TIMEOUT, minwait=3,
-                        handlers=None, timeout=_WAIT_TIMEOUT):
+    def _wait_invisible(self, locators, timeout_warn=None, minwait=3,
+                        handlers=None, timeout=None):
+        """Defalt timeout_warn is assigned by _PAGE_WARN_TIMEOUT
+        Defalt timeout is assigned by _PAGE_WAIT_TIMEOUT"""
+        if not timeout_warn: 
+            timeout_warn = self._PAGE_WARN_TIMEOUT
+        if not timeout:
+            timeout = self._PAGE_WAIT_TIMEOUT
+
         self._wait_absent(locators, timeout_warn, minwait, handlers, timeout, check_visibility_only=True)
 
     def _handle_conditional_views(self, handlers, duration=5):
