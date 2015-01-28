@@ -31,12 +31,11 @@ def _is_iterable(obj):
 def _to_iterable(obj):
     return obj if _is_iterable(obj) else (obj,)
 
-_WAIT_INTERVAL = 1
-
 _NOT_FOUND_EXCEPTIONS = (ElementNotFoundError,)
 
 class PageObject(object):
 
+    _WAIT_INTERVAL = 1
     _PAGE_WARN_TIMEOUT = 10
     _PAGE_WAIT_TIMEOUT = 60
     
@@ -83,7 +82,7 @@ class PageObject(object):
                         time.time() - start_time,
                         level=logging.WARN)
 
-                time.sleep(_WAIT_INTERVAL)
+                time.sleep(self._WAIT_INTERVAL)
                 if time.time() > timeout: raise
         if hasattr(self, '_wait_for_idle'):
             self._log_screenshot('Already on certain page then wait for idle.')
@@ -190,7 +189,7 @@ class PageObject(object):
                     level=logging.WARN)
             _consult_handlers(handlers, self._not_found_exceptions)
 
-            time.sleep(_WAIT_INTERVAL)
+            time.sleep(self._WAIT_INTERVAL)
             if time.time() > timeout:
                 raise TimeoutError(
                     'Wait ALL elements to be present. locators = %s, '
@@ -241,7 +240,7 @@ class PageObject(object):
                     locators, time.time() - start_time, level=logging.WARN)
             _consult_handlers(handlers, self._not_found_exceptions)
 
-            time.sleep(_WAIT_INTERVAL)
+            time.sleep(self._WAIT_INTERVAL)
             if time.time() > timeout:
                 raise TimeoutError(
                     'Wait ANY elements to be present. locators = %s, '
@@ -303,7 +302,7 @@ class PageObject(object):
                     locators, check_visibility_only, time.time() - start_time, 
                     level=logging.WARN)
 
-            time.sleep(_WAIT_INTERVAL)
+            time.sleep(self._WAIT_INTERVAL)
             if time.time() > timeout:
                 raise TimeoutError(
                     'Wait ALL elements to be absent. locators = %s, '
