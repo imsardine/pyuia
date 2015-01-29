@@ -59,8 +59,17 @@ class PageObject(object):
         return page
 
     def wait_for_page_loaded(self, timeout_warn=None, timeout=None):
-        """Defalt timeout_warn is assigned by _PAGE_WARN_TIMEOUT
-        Defalt timeout is assigned by _PAGE_WAIT_TIMEOUT"""
+        """Wait for page loaded.
+
+        Return the page object if it is already on certain page.
+
+        Args:
+            timeout_warn: A warning time for the page loading. The defaut value is _PAGE_WARN_TIMEOUT.
+            timeout: A timeout for the page loading. The defaut value is _PAGE_WAIT_TIMEOUT.
+
+        Raises:
+            Exception: An error occurred when the timeout period expired.
+        """
         if not timeout_warn: 
             timeout_warn = self._PAGE_WARN_TIMEOUT
         if not timeout:
