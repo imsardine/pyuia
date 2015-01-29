@@ -36,6 +36,8 @@ _NOT_FOUND_EXCEPTIONS = (ElementNotFoundError,)
 class PageObject(object):
 
     _WAIT_INTERVAL = 1
+    _WARN_TIMEOUT = 10
+    _WAIT_TIMEOUT = 60
     _PAGE_WARN_TIMEOUT = 10
     _PAGE_WAIT_TIMEOUT = 60
     
@@ -150,12 +152,12 @@ class PageObject(object):
 
     def _wait_present(self, locators, timeout_warn=None, handlers=None,
                       timeout=None, check_visibility=False):
-        """Defalt timeout_warn is assigned by _PAGE_WARN_TIMEOUT
-        Defalt timeout is assigned by _PAGE_WAIT_TIMEOUT"""
+        """Defalt timeout_warn is assigned by _WARN_TIMEOUT
+        Defalt timeout is assigned by _WAIT_TIMEOUT"""
         if not timeout_warn: 
-            timeout_warn = self._PAGE_WARN_TIMEOUT
+            timeout_warn = self._WARN_TIMEOUT
         if not timeout:
-            timeout = self._PAGE_WAIT_TIMEOUT
+            timeout = self._WAIT_TIMEOUT
 
         start_time = time.time()
         timeout_warn = start_time + timeout_warn
@@ -197,23 +199,23 @@ class PageObject(object):
                     (locators, check_visibility, time.time() - start_time))
 
     def _wait_visible(self, locators, timeout_warn=None, handlers=None, timeout=None):
-        """Defalt timeout_warn is assigned by _PAGE_WARN_TIMEOUT
-        Defalt timeout is assigned by _PAGE_WAIT_TIMEOUT"""
+        """Defalt timeout_warn is assigned by _WARN_TIMEOUT
+        Defalt timeout is assigned by _WAIT_TIMEOUT"""
         if not timeout_warn: 
-            timeout_warn = self._PAGE_WARN_TIMEOUT
+            timeout_warn = self._WARN_TIMEOUT
         if not timeout:
-            timeout = self._PAGE_WAIT_TIMEOUT  
+            timeout = self._WAIT_TIMEOUT  
 
         return self._wait_present(locators, timeout_warn, handlers, timeout, check_visibility=True)
 
     def _wait_any_present(self, locators, timeout_warn=None, handlers=None,
                           timeout=None, check_visibility=False):
-        """Defalt timeout_warn is assigned by _PAGE_WARN_TIMEOUT
-        Defalt timeout is assigned by _PAGE_WAIT_TIMEOUT"""
+        """Defalt timeout_warn is assigned by _WARN_TIMEOUT
+        Defalt timeout is assigned by _WAIT_TIMEOUT"""
         if not timeout_warn: 
-            timeout_warn = self._PAGE_WARN_TIMEOUT
+            timeout_warn = self._WARN_TIMEOUT
         if not timeout:
-            timeout = self._PAGE_WAIT_TIMEOUT
+            timeout = self._WAIT_TIMEOUT
 
         start_time = time.time()
         timeout_warn = start_time + timeout_warn
@@ -249,23 +251,23 @@ class PageObject(object):
 
     def _wait_any_visible(self, locators, timeout_warn=None, handlers=None,
                           timeout=None):
-        """Defalt timeout_warn is assigned by _PAGE_WARN_TIMEOUT
-        Defalt timeout is assigned by _PAGE_WAIT_TIMEOUT"""
+        """Defalt timeout_warn is assigned by _WARN_TIMEOUT
+        Defalt timeout is assigned by _WAIT_TIMEOUT"""
         if not timeout_warn: 
-            timeout_warn = self._PAGE_WARN_TIMEOUT
+            timeout_warn = self._WARN_TIMEOUT
         if not timeout:
-            timeout = self._PAGE_WAIT_TIMEOUT
+            timeout = self._WAIT_TIMEOUT
 
         return self._wait_any_present(locators, timeout_warn, handlers, timeout, check_visibility=True)
 
     def _wait_absent(self, locators, timeout_warn=None, minwait=3,
                      handlers=None, timeout=None, check_visibility_only=False):
-        """Defalt timeout_warn is assigned by _PAGE_WARN_TIMEOUT
-        Defalt timeout is assigned by _PAGE_WAIT_TIMEOUT"""
+        """Defalt timeout_warn is assigned by _WARN_TIMEOUT
+        Defalt timeout is assigned by _WAIT_TIMEOUT"""
         if not timeout_warn: 
-            timeout_warn = self._PAGE_WARN_TIMEOUT
+            timeout_warn = self._WARN_TIMEOUT
         if not timeout:
-            timeout = self._PAGE_WAIT_TIMEOUT
+            timeout = self._WAIT_TIMEOUT
 
         start_time = time.time()
         timeout_appear = start_time + minwait
@@ -311,12 +313,12 @@ class PageObject(object):
 
     def _wait_invisible(self, locators, timeout_warn=None, minwait=3,
                         handlers=None, timeout=None):
-        """Defalt timeout_warn is assigned by _PAGE_WARN_TIMEOUT
-        Defalt timeout is assigned by _PAGE_WAIT_TIMEOUT"""
+        """Defalt timeout_warn is assigned by _WARN_TIMEOUT
+        Defalt timeout is assigned by _WAIT_TIMEOUT"""
         if not timeout_warn: 
-            timeout_warn = self._PAGE_WARN_TIMEOUT
+            timeout_warn = self._WARN_TIMEOUT
         if not timeout:
-            timeout = self._PAGE_WAIT_TIMEOUT
+            timeout = self._WAIT_TIMEOUT
 
         self._wait_absent(locators, timeout_warn, minwait, handlers, timeout, check_visibility_only=True)
 
