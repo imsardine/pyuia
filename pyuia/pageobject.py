@@ -239,8 +239,21 @@ class PageObject(object):
 
     def _wait_any_present(self, locators, timeout_warn=None, handlers=None,
                           timeout=None, check_visibility=False):
-        """Defalt timeout_warn is assigned by _WARN_TIMEOUT
-        Defalt timeout is assigned by _WAIT_TIMEOUT"""
+       """Wait for any one of the elements presents.
+
+       Return the element which is presents first.
+
+        Args:
+            locators: The locators of the elements which we want to wait for.
+            handlers: The handlers which can handle the some specific events during the waiting period.
+            timeout_warn: A warning time for the page loading. The defaut value is _WARN_TIMEOUT.
+            timeout: A timeout for the page loading. The defaut value is _WAIT_TIMEOUT.
+            check_visibility:   The boolean that represents the visibility of all elements. 
+                                The defaut value is False.
+
+        Raises:
+            TimeoutError: An error occurred when the timeout period expired.
+        """
         if not timeout_warn: 
             timeout_warn = self._WARN_TIMEOUT
         if not timeout:
