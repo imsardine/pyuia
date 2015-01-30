@@ -315,8 +315,21 @@ class PageObject(object):
 
     def _wait_absent(self, locators, timeout_warn=None, minwait=3,
                      handlers=None, timeout=None, check_visibility_only=False):
-        """Defalt timeout_warn is assigned by _WARN_TIMEOUT
-        Defalt timeout is assigned by _WAIT_TIMEOUT"""
+       """Wait for all elements which turn into being absent.
+ 
+        Args:
+            locators: The locators of the elements which we want to wait for.
+            handlers: The handlers which can handle the some specific events during the waiting period.
+            minwait:    The least time to wait for, defaut value is 3.
+                        In order to make sure target element(s) won't appear at this time.
+            timeout_warn: A warning time for the page loading. The defaut value is _WARN_TIMEOUT.
+            timeout: A timeout for the page loading. The defaut value is _WAIT_TIMEOUT.
+            check_visibility_only:  The boolean that represents if need to check visibility only. 
+                                    The defaut value is False.
+
+        Raises:
+            TimeoutError: An error occurred when the timeout period expired.
+        """
         if not timeout_warn: 
             timeout_warn = self._WARN_TIMEOUT
         if not timeout:
