@@ -321,7 +321,7 @@ class PageObject(object):
             locators: The locators of the elements which we want to wait for.
             handlers: The handlers which can handle the some specific events during the waiting period.
             minwait:    The least time to wait for, defaut value is 3.
-                        In order to make sure target element(s) won't appear at this time.
+                        In order to assert with certainty that target element(s) is absent or invisible.
             timeout_warn: A warning time for the page loading. The defaut value is _WARN_TIMEOUT.
             timeout: A timeout for the page loading. The defaut value is _WAIT_TIMEOUT.
             check_visibility_only:  The boolean that represents if need to check visibility only. 
@@ -385,7 +385,7 @@ class PageObject(object):
             locators: The locators of the elements which we want to wait for.
             handlers: The handlers which can handle the some specific events during the waiting period.
             minwait:    The least time to wait for, defaut value is 3.
-                        In order to make sure target element(s) won't appear at this time.
+                        In order to assert with certainty that target element(s) is absent or invisible.
             timeout_warn: A warning time for the page loading. The defaut value is _WARN_TIMEOUT.
             timeout: A timeout for the page loading. The defaut value is _WAIT_TIMEOUT.
 
