@@ -161,7 +161,7 @@ class PageObject(object):
 
     def _wait_present(self, locators, timeout_warn=None, handlers=None,
                       timeout=None, check_visibility=False):
-       """Wait for all elements are present.
+        """Wait for all elements are present.
 
         Args:
             locators: The locators of the elements which we want to wait for.
@@ -174,7 +174,7 @@ class PageObject(object):
         Raises:
             TimeoutError: An error occurred when the timeout period expired.
         """
-        if not timeout_warn: 
+        if not timeout_warn:
             timeout_warn = self._WARN_TIMEOUT
         if not timeout:
             timeout = self._WAIT_TIMEOUT
@@ -219,7 +219,7 @@ class PageObject(object):
                     (locators, check_visibility, time.time() - start_time))
 
     def _wait_visible(self, locators, timeout_warn=None, handlers=None, timeout=None):
-       """Wait for all elements which turn into being visible.
+        """Wait for all elements which turn into being visible.
 
         Args:
             locators: The locators of the elements which we want to wait for.
@@ -239,9 +239,9 @@ class PageObject(object):
 
     def _wait_any_present(self, locators, timeout_warn=None, handlers=None,
                           timeout=None, check_visibility=False):
-       """Wait for any one of the elements presents.
+        """Wait for any one of the elements presents.
 
-       Return the element which is presents first.
+        Return the element which is presents first.
 
         Args:
             locators: The locators of the elements which we want to wait for.
@@ -293,7 +293,7 @@ class PageObject(object):
 
     def _wait_any_visible(self, locators, timeout_warn=None, handlers=None,
                           timeout=None):
-       """Wait for any one of the elements which turn into being visible.
+        """Wait for any one of the elements which turn into being visible.
 
         Return the element which is presents first.
  
@@ -315,7 +315,7 @@ class PageObject(object):
 
     def _wait_absent(self, locators, timeout_warn=None, minwait=3,
                      handlers=None, timeout=None, check_visibility_only=False):
-       """Wait for all elements which turn into being absent.
+        """Wait for all elements which turn into being absent.
  
         Args:
             locators: The locators of the elements which we want to wait for.
@@ -379,7 +379,7 @@ class PageObject(object):
 
     def _wait_invisible(self, locators, timeout_warn=None, minwait=3,
                         handlers=None, timeout=None):
-       """Wait for all elements which turn into being invisible.
+        """Wait for all elements which turn into being invisible.
  
         Args:
             locators: The locators of the elements which we want to wait for.
