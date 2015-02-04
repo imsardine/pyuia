@@ -9,7 +9,7 @@ setup(
       'pyuia.selenium',
       'pyuia.appium',
   ],
-  version = '0.1.1',
+  version = '0.2',
   description = 'PyUIA is a library aiming to facilitate the implementation of UI test automation with Python.',
   author = 'KKBOX SQA Team',
   author_email = 'imsardine@gmail.com',
