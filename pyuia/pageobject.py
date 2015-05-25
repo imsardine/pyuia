@@ -121,7 +121,7 @@ class PageObject(object):
             except self._not_found_exceptions as e:
                 _logger.debug(
                     'Assert ALL present. The locator (%s) did not resolve to '
-                    'an element.', locator, exc_info=True)
+                    'an element.', locator)
                 element = None
             if not element:
                 _consult_handlers(handlers, self._not_found_exceptions, assertion=True)
@@ -146,7 +146,7 @@ class PageObject(object):
             except self._not_found_exceptions as e:
                 _logger.debug(
                     'Assert ANY present. The locator (%s) did not resolve to '
-                    'an element.', locator, exc_info=True)
+                    'an element.', locator)
                 element = None
             if not element: continue # None or empty sequence
 
@@ -193,7 +193,7 @@ class PageObject(object):
                 except self._not_found_exceptions as e:
                     _logger.debug(
                         'Wait ALL present. The locator (%s) did not resolve to '
-                        'an element.', locator, exc_info=True)
+                        'an element.', locator)
                     element = None
                 if not element: break # None or empty sequence
 
@@ -271,7 +271,7 @@ class PageObject(object):
                 except self._not_found_exceptions as e:
                     _logger.debug(
                         'Wait ANY present. The locator (%s) did not resolve to '
-                        'an element.', locator, exc_info=True)
+                        'an element.', locator)
                     element = None
                 if not element: continue # None or empty sequence
 
@@ -352,7 +352,7 @@ class PageObject(object):
                 except self._not_found_exceptions as e:
                     _logger.debug(
                         'Wait ALL absent. The locator (%s) did not resolve to '
-                        'an element.', locator, exc_info=True)
+                        'an element.', locator)
                     element = None
                 if not element: continue
 
@@ -423,9 +423,7 @@ def _consult_handlers(handlers, not_found_exceptions, assertion=False):
     try:
         element = locator()
     except not_found_exceptions as e:
-        _logger.debug(
-            'The locator (%s) did not resolve to an element.',
-            locator, exc_info=True)
+        _logger.debug('The locator (%s) did not resolve to an element.', locator)
         element = None
 
     # consult the handler again later, or drop it.
@@ -445,7 +443,7 @@ def _consult_handlers_assertion(handlers, not_found_exceptions):
         except not_found_exceptions as e:
             _logger.debug(
                 'Consult handlers. The locator (%s) did not resolve to an element.',
-                locator, exc_info=True)
+                locator)
             element = None
         if not element: continue
 
