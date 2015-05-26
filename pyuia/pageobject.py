@@ -415,10 +415,10 @@ def _consult_handlers(handlers, not_found_exceptions, assertion=False):
     if isinstance(handlers, dict):
         handlers = handlers.items()
     handlers = list(handlers)
+    _logger.debug('Consult handlers (for waiting). handlers = %s.', [h[0] for h in handlers])
 
     # consult a handler at a time (rotation)
     locator, handler = handlers[0]
-    _logger.debug('Consult handlers. current = %s, all = %s.', locator, [h[0] for h in handlers])
 
     try:
         element = locator()
@@ -431,23 +431,29 @@ def _consult_handlers(handlers, not_found_exceptions, assertion=False):
     if not element or handler(element):
         handlers.append((locator, handler))
 
-    _logger.debug('Resultant handlers: %s', [h[0] for h in handlers])
+    _logger.debug('Rotated/modified handlers: %s', [h[0] for h in handlers])
     return handlers
 
 def _consult_handlers_assertion(handlers, not_found_exceptions):
     if not handlers: return
 
-    for locator, handler in handlers.items():
+    # convert handlers to a list of (locator, handler)
+    if isinstance(handlers, dict):
+        handlers = handlers.items()
+    _logger.debug('Consult ALL handlers (for assertion). handlers = %s.', [h[0] for h in handlers])
+
+    for locator, handler in handlers:
         try:
             element = locator()
-        except not_found_exceptions as e:
             _logger.debug(
-                'Consult handlers. The locator (%s) did not resolve to an element.',
+                'The locator (%s) do resolve to an element. (at most handled by a handler)',
                 locator)
+
+            # at most handled by a handler at a time
+            handler(element)
+            return
+        except not_found_exceptions as e:
+            _logger.debug('The locator (%s) did not resolve to an element.', locator)
             element = None
         if not element: continue
-
-        # at most handled by a handler at a time
-        handler(element)
-        return
 
