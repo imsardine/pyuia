@@ -59,21 +59,8 @@ class PageObject(object):
         return page
 
     def wait_for_page_loaded(self, timeout_warn=None, timeout=None):
-        """Wait for page loaded.
-
-        Return the page object if it is already on certain page.
-
-        Args:
-            timeout_warn: A warning time for the page loading. The defaut value is _PAGE_WARN_TIMEOUT.
-            timeout: A timeout for the page loading. The defaut value is _PAGE_WAIT_TIMEOUT.
-
-        Raises:
-            Exception: An error occurred when the timeout period expired.
-        """
-        if not timeout_warn: 
-            timeout_warn = self._PAGE_WARN_TIMEOUT
-        if not timeout:
-            timeout = self._PAGE_WAIT_TIMEOUT
+        timeout_warn = timeout_warn or self._PAGE_WARN_TIMEOUT
+        timeout = timeout or self._PAGE_WAIT_TIMEOUT
 
         start_time = time.time()
         timeout_warn = start_time + timeout_warn
@@ -161,23 +148,8 @@ class PageObject(object):
 
     def _wait_present(self, locators, timeout_warn=None, handlers=None,
                       timeout=None, check_visibility=False):
-        """Wait for all elements are present.
-
-        Args:
-            locators: The locators of the elements which we want to wait for.
-            handlers: The handlers which can handle the some specific events during the waiting period.
-            timeout_warn: A warning time for the page loading. The defaut value is _WARN_TIMEOUT.
-            timeout: A timeout for the page loading. The defaut value is _WAIT_TIMEOUT.
-            check_visibility:   The boolean that represents the visibility of all elements. 
-                                The defaut value is False.
-
-        Raises:
-            TimeoutError: An error occurred when the timeout period expired.
-        """
-        if not timeout_warn:
-            timeout_warn = self._WARN_TIMEOUT
-        if not timeout:
-            timeout = self._WAIT_TIMEOUT
+        timeout_warn = timeout_warn or self._WARN_TIMEOUT
+        timeout = timeout or self._WAIT_TIMEOUT
 
         start_time = time.time()
         timeout_warn = start_time + timeout_warn
@@ -219,45 +191,12 @@ class PageObject(object):
                     (locators, check_visibility, time.time() - start_time))
 
     def _wait_visible(self, locators, timeout_warn=None, handlers=None, timeout=None):
-        """Wait for all elements which turn into being visible.
-
-        Args:
-            locators: The locators of the elements which we want to wait for.
-            handlers: The handlers which can handle the some specific events during the waiting period.
-            timeout_warn: A warning time for the page loading. The defaut value is _WARN_TIMEOUT.
-            timeout: A timeout for the page loading. The defaut value is _WAIT_TIMEOUT.
-
-        Raises:
-            TimeoutError: An error occurred when the timeout period expired.
-        """
-        if not timeout_warn: 
-            timeout_warn = self._WARN_TIMEOUT
-        if not timeout:
-            timeout = self._WAIT_TIMEOUT  
-
         return self._wait_present(locators, timeout_warn, handlers, timeout, check_visibility=True)
 
     def _wait_any_present(self, locators, timeout_warn=None, handlers=None,
                           timeout=None, check_visibility=False):
-        """Wait for any one of the elements presents.
-
-        Return the element which is presents first.
-
-        Args:
-            locators: The locators of the elements which we want to wait for.
-            handlers: The handlers which can handle the some specific events during the waiting period.
-            timeout_warn: A warning time for the page loading. The defaut value is _WARN_TIMEOUT.
-            timeout: A timeout for the page loading. The defaut value is _WAIT_TIMEOUT.
-            check_visibility:   The boolean that represents the visibility of all elements. 
-                                The defaut value is False.
-
-        Raises:
-            TimeoutError: An error occurred when the timeout period expired.
-        """
-        if not timeout_warn: 
-            timeout_warn = self._WARN_TIMEOUT
-        if not timeout:
-            timeout = self._WAIT_TIMEOUT
+        timeout_warn = timeout_warn or self._WARN_TIMEOUT
+        timeout = timeout or self._WAIT_TIMEOUT
 
         start_time = time.time()
         timeout_warn = start_time + timeout_warn
@@ -293,47 +232,12 @@ class PageObject(object):
 
     def _wait_any_visible(self, locators, timeout_warn=None, handlers=None,
                           timeout=None):
-        """Wait for any one of the elements which turn into being visible.
-
-        Return the element which is presents first.
- 
-        Args:
-            locators: The locators of the elements which we want to wait for.
-            handlers: The handlers which can handle the some specific events during the waiting period.
-            timeout_warn: A warning time for the page loading. The defaut value is _WARN_TIMEOUT.
-            timeout: A timeout for the page loading. The defaut value is _WAIT_TIMEOUT.
-
-        Raises:
-            TimeoutError: An error occurred when the timeout period expired.
-        """
-        if not timeout_warn: 
-            timeout_warn = self._WARN_TIMEOUT
-        if not timeout:
-            timeout = self._WAIT_TIMEOUT
-
         return self._wait_any_present(locators, timeout_warn, handlers, timeout, check_visibility=True)
 
     def _wait_absent(self, locators, timeout_warn=None, minwait=3,
                      handlers=None, timeout=None, check_visibility_only=False):
-        """Wait for all elements which turn into being absent.
- 
-        Args:
-            locators: The locators of the elements which we want to wait for.
-            handlers: The handlers which can handle the some specific events during the waiting period.
-            minwait:    The least time to wait for, defaut value is 3.
-                        In order to assert with certainty that target element(s) is absent or invisible.
-            timeout_warn: A warning time for the page loading. The defaut value is _WARN_TIMEOUT.
-            timeout: A timeout for the page loading. The defaut value is _WAIT_TIMEOUT.
-            check_visibility_only:  The boolean that represents if need to check visibility only. 
-                                    The defaut value is False.
-
-        Raises:
-            TimeoutError: An error occurred when the timeout period expired.
-        """
-        if not timeout_warn: 
-            timeout_warn = self._WARN_TIMEOUT
-        if not timeout:
-            timeout = self._WAIT_TIMEOUT
+        timeout_warn = timeout_warn or self._WARN_TIMEOUT
+        timeout = timeout or self._WAIT_TIMEOUT
 
         start_time = time.time()
         timeout_appear = start_time + minwait
@@ -379,24 +283,6 @@ class PageObject(object):
 
     def _wait_invisible(self, locators, timeout_warn=None, minwait=3,
                         handlers=None, timeout=None):
-        """Wait for all elements which turn into being invisible.
- 
-        Args:
-            locators: The locators of the elements which we want to wait for.
-            handlers: The handlers which can handle the some specific events during the waiting period.
-            minwait:    The least time to wait for, defaut value is 3.
-                        In order to assert with certainty that target element(s) is absent or invisible.
-            timeout_warn: A warning time for the page loading. The defaut value is _WARN_TIMEOUT.
-            timeout: A timeout for the page loading. The defaut value is _WAIT_TIMEOUT.
-
-        Raises:
-            TimeoutError: An error occurred when the timeout period expired.
-        """
-        if not timeout_warn: 
-            timeout_warn = self._WARN_TIMEOUT
-        if not timeout:
-            timeout = self._WAIT_TIMEOUT
-
         self._wait_absent(locators, timeout_warn, minwait, handlers, timeout, check_visibility_only=True)
 
     def _handle_conditional_views(self, handlers, duration=5):
