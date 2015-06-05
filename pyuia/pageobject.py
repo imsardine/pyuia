@@ -55,20 +55,21 @@ class PageObject(object):
     def _page_object(self, page_class, wait_for_loaded=True):
         """Instantiate a page object."""
         page = get_page_object(page_class, self._context)
-        if wait_for_loaded: page.wait_for_page_loaded()
+        if wait_for_loaded: page.wait_for_page_loaded(self.__class__)
         return page
 
-    def wait_for_page_loaded(self, timeout_warn=None, timeout=None):
+    def wait_for_page_loaded(self, from_page_class=None, timeout_warn=None, timeout=None):
         timeout_warn = timeout_warn or self._PAGE_WARN_TIMEOUT
         timeout = timeout or self._PAGE_WAIT_TIMEOUT
 
         start_time = time.time()
         timeout_warn = start_time + timeout_warn
         timeout = start_time + timeout
+        handlers = self._get_page_transition_handlers(from_page_class)
 
         while True:
             try:
-                self.assert_on_this_page()
+                self.assert_on_this_page(from_page_class)
                 break
             except Exception:
                 # catch all exceptions, so locators that are involved in page
@@ -80,14 +81,22 @@ class PageObject(object):
                         time.time() - start_time,
                         level=logging.WARN)
 
+                handlers = self._consult_handlers(handlers)
                 time.sleep(self._WAIT_INTERVAL)
                 if time.time() > timeout: raise
-        if hasattr(self, '_wait_for_idle'):
-            self._log_screenshot('Already on certain page then wait for idle.')
-            self._wait_for_idle()
+
+        self._log_screenshot('Already on the page.')
+        self._on_page_entry(from_page_class)
+
         return self
 
+    def _get_page_transition_handlers(self, from_page_class): pass
+
     def assert_on_this_page(self): pass
+
+    def _on_page_entry(self, from_page_class):
+        """To put the page in a known state."""
+        pass
 
     def _log_screenshot(self, msg, *args, **kwargs):
         kwargs['page'] = self
@@ -97,7 +106,7 @@ class PageObject(object):
         kwargs['page'] = self
         self._context.log_page_source(msg, *args, **kwargs)
 
-    def _assert_present(self, locators, handlers=None, check_visibility=False):
+    def _assert_present(self, locators, check_visibility=False):
         single_loc = not _is_iterable(locators)
         locators = _to_iterable(locators)
         elements = []
@@ -111,20 +120,18 @@ class PageObject(object):
                     'an element.', locator)
                 element = None
             if not element:
-                _consult_handlers(handlers, self._not_found_exceptions, assertion=True)
                 assert False, locator # None or empty sequence
 
             if check_visibility and not self._is_displayed(element):
-                _consult_handlers(handlers, self._not_found_exceptions, assertion=True)
                 assert False, locator
             elements.append(element)
 
         return elements[0] if single_loc else elements
 
-    def _assert_visible(self, locators, handlers=None):
-        return self._assert_present(locators, handlers, check_visibility=True)
+    def _assert_visible(self, locators):
+        return self._assert_present(locators, check_visibility=True)
 
-    def _assert_any_present(self, locators, handlers=None, check_visibility=False):
+    def _assert_any_present(self, locators, check_visibility=False):
         locators = _to_iterable(locators)
 
         for locator in locators:
@@ -140,11 +147,10 @@ class PageObject(object):
             if check_visibility and not self._is_displayed(element): continue
             return element
 
-        _consult_handlers(handlers, self._not_found_exceptions, assertion=True)
         assert False, locators
 
-    def _assert_any_visible(self, locators, handlers=None):
-        return self._assert_any_present(locators, handlers, check_visibility=True)
+    def _assert_any_visible(self, locators):
+        return self._assert_any_present(locators, check_visibility=True)
 
     def _wait_present(self, locators, timeout_warn=None, handlers=None,
                       timeout=None, check_visibility=False):
@@ -181,7 +187,7 @@ class PageObject(object):
                     'check_visibility = [%s], time elapsed = [%s]s.',
                     locators, check_visibility, time.time() - start_time,
                     level=logging.WARN)
-            handlers = _consult_handlers(handlers, self._not_found_exceptions)
+            handlers = self._consult_handlers(handlers)
 
             time.sleep(self._WAIT_INTERVAL)
             if time.time() > timeout:
@@ -221,7 +227,7 @@ class PageObject(object):
                 self._log_screenshot(
                     'Wait ANY present. locators = %s, time elapsed = [%s]s.',
                     locators, time.time() - start_time, level=logging.WARN)
-            handlers = _consult_handlers(handlers, self._not_found_exceptions)
+            handlers = self._consult_handlers(handlers)
 
             time.sleep(self._WAIT_INTERVAL)
             if time.time() > timeout:
@@ -248,7 +254,7 @@ class PageObject(object):
         while True:
             # to avoid the situation that elements are absent simply because
             # other elements such as error dialogs are displayed.
-            handlers = _consult_handlers(handlers, self._not_found_exceptions)
+            handlers = self._consult_handlers(handlers)
             any_invalid = False
             for locator in locators:
                 try:
@@ -288,58 +294,32 @@ class PageObject(object):
     def _handle_conditional_views(self, handlers, duration=5):
         timeout = time.time() + duration
         while True:
-            handlers = _consult_handlers(handlers, self._not_found_exceptions)
+            handlers = self._consult_handlers(handlers)
             if time.time() > timeout: break
 
-def _consult_handlers(handlers, not_found_exceptions, assertion=False):
-    if not handlers: return
-    if assertion:
-        _consult_handlers_assertion(handlers, not_found_exceptions)
-        return
+    def _consult_handlers(self, handlers):
+        if not handlers: return
 
-    # convert handlers to a mutable list of (locator, handler)
-    if isinstance(handlers, dict):
-        handlers = handlers.items()
-    handlers = list(handlers)
-    _logger.debug('Consult handlers (for waiting). handlers = %s.', [h[0] for h in handlers])
+        # convert handlers to a mutable list of (locator, handler)
+        if isinstance(handlers, dict):
+            handlers = handlers.items()
+        handlers = list(handlers)
+        _logger.debug('Consult handlers. handlers = %s.', [h[0] for h in handlers])
 
-    # consult a handler at a time (rotation)
-    locator, handler = handlers[0]
+        # consult a handler at a time (rotation)
+        locator, handler = handlers[0]
 
-    try:
-        element = locator()
-    except not_found_exceptions as e:
-        _logger.debug('The locator (%s) did not resolve to an element.', locator)
-        element = None
-
-    # consult the handler again later, or drop it.
-    del handlers[0]
-    if not element or handler(element):
-        handlers.append((locator, handler))
-
-    _logger.debug('Rotated/modified handlers: %s', [h[0] for h in handlers])
-    return handlers
-
-def _consult_handlers_assertion(handlers, not_found_exceptions):
-    if not handlers: return
-
-    # convert handlers to a list of (locator, handler)
-    if isinstance(handlers, dict):
-        handlers = handlers.items()
-    _logger.debug('Consult ALL handlers (for assertion). handlers = %s.', [h[0] for h in handlers])
-
-    for locator, handler in handlers:
         try:
             element = locator()
-            _logger.debug(
-                'The locator (%s) do resolve to an element. (at most handled by a handler)',
-                locator)
-
-            # at most handled by a handler at a time
-            handler(element)
-            return
-        except not_found_exceptions as e:
+        except self.not_found_exceptions as e:
             _logger.debug('The locator (%s) did not resolve to an element.', locator)
             element = None
-        if not element: continue
+
+        # consult the handler again later, or drop it.
+        del handlers[0]
+        if not element or (self._is_displayed(element) and handler(element)):
+            handlers.append((locator, handler))
+
+        _logger.debug('Rotated/modified handlers: %s', [h[0] for h in handlers])
+        return handlers
 
