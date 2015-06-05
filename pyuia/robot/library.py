@@ -113,7 +113,7 @@ class BaseAppLibrary(object):
 
     @_current_page.setter
     def _current_page(self, page):
-        return self._cache.current._context.current_page = page
+        self._cache.current._context.current_page = page
 
 class RFConnectionCache(object):
 
