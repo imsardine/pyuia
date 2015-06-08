@@ -1,7 +1,7 @@
 import time, logging
 from .exceptions import TimeoutError, ElementNotFoundError
 
-__all__ = ['PageObject', 'get_page_object']
+__all__ = ['PageObject', 'get_page_object', 'cacheable']
 _logger = logging.getLogger(__name__)
 
 _page_singletons = {} # cache
@@ -55,8 +55,16 @@ class PageObject(object):
     def _page_object(self, page_class, wait_for_loaded=True):
         """Instantiate a page object."""
         page = get_page_object(page_class, self._context)
-        if wait_for_loaded: page.wait_for_page_loaded(self.__class__)
+        if wait_for_loaded:
+            page._invalidate_locator_cache()
+            page.wait_for_page_loaded(self.__class__)
+            page._invalidate_locator_cache()
+
         return page
+
+    def _invalidate_locator_cache(self):
+        if hasattr(self, '_locator_cache'):
+            self._locator_cache = {}
 
     def wait_for_page_loaded(self, from_page_class=None, timeout_warn=None, timeout=None):
         timeout_warn = timeout_warn or self._PAGE_WARN_TIMEOUT
@@ -322,4 +330,28 @@ class PageObject(object):
 
         _logger.debug('Rotated/modified handlers: %s', [h[0] for h in handlers])
         return handlers
+
+def cacheable(func):
+    def inner(*args, **kwargs):
+        page = args[0] # self
+        assert isinstance(page, PageObject)
+
+        # cache of the page
+        if not hasattr(page, '_locator_cache'):
+            page._locator_cache = {} # {fname: {(args, kwargs): value}}
+        cache = page._locator_cache
+
+        # cache of the method
+        fname = func.__name__
+        if not fname in cache:
+            cache[fname] = {} # {(args, kwargs): value}
+        fcache = cache[fname]
+
+        # invoke the cached method or return the cached value
+        key = str(args[1:]) + str(kwargs)
+        if key not in fcache:
+            fcache[key] = func(*args, **kwargs)
+        return fcache[key]
+
+    return inner
 
