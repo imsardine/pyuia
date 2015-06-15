@@ -13,6 +13,8 @@ def get_page_object(page_class, context):
         cache = _page_singletons[fqcn]
         if cache._context is context:
             _logger.debug('Cached, and the context remains unchanged.')
+            cache._invalidate_elements_cache()
+
             return cache
         else:
             _logger.debug('Cached, but the context is invalid.')
@@ -32,6 +34,21 @@ def _to_iterable(obj):
     return obj if _is_iterable(obj) else (obj,)
 
 _NOT_FOUND_EXCEPTIONS = (ElementNotFoundError,)
+
+_ELEMENTS_CACHE_ATTR = '_pyuia_elements_cache'
+
+def cacheable(lookup):
+    def func(self):
+        if not hasattr(self, _ELEMENTS_CACHE_ATTR):
+            setattr(self, _ELEMENTS_CACHE_ATTR, {}) # {callable_id: element(s)}
+        cache = getattr(self, _ELEMENTS_CACHE_ATTR)
+
+        key = id(lookup)
+        if key not in cache:
+            cache[key] = lookup(self)
+        return cache[key]
+
+    return func
 
 class PageObject(object):
 
@@ -62,9 +79,9 @@ class PageObject(object):
 
         return page
 
-    def _invalidate_locator_cache(self):
-        if hasattr(self, '_locator_cache'):
-            self._locator_cache = {}
+    def _invalidate_elements_cache(self):
+        if hasattr(self, _ELEMENTS_CACHE_ATTR):
+            delattr(self, _ELEMENTS_CACHE_ATTR)
 
     def wait_for_page_loaded(self, from_page_class=None, timeout_warn=None, timeout=None):
         timeout_warn = timeout_warn or self._PAGE_WARN_TIMEOUT
@@ -77,6 +94,7 @@ class PageObject(object):
 
         while True:
             try:
+                self._invalidate_elements_cache()
                 self.assert_on_this_page(from_page_class)
                 break
             except Exception:
@@ -319,7 +337,7 @@ class PageObject(object):
 
         try:
             element = locator()
-        except self.not_found_exceptions as e:
+        except self._not_found_exceptions as e:
             _logger.debug('The locator (%s) did not resolve to an element.', locator)
             element = None
 
@@ -330,28 +348,4 @@ class PageObject(object):
 
         _logger.debug('Rotated/modified handlers: %s', [h[0] for h in handlers])
         return handlers
-
-def cacheable(func):
-    def inner(*args, **kwargs):
-        page = args[0] # self
-        assert isinstance(page, PageObject)
-
-        # cache of the page
-        if not hasattr(page, '_locator_cache'):
-            page._locator_cache = {} # {fname: {(args, kwargs): value}}
-        cache = page._locator_cache
-
-        # cache of the method
-        fname = func.__name__
-        if not fname in cache:
-            cache[fname] = {} # {(args, kwargs): value}
-        fcache = cache[fname]
-
-        # invoke the cached method or return the cached value
-        key = str(args[1:]) + str(kwargs)
-        if key not in fcache:
-            fcache[key] = func(*args, **kwargs)
-        return fcache[key]
-
-    return inner
 

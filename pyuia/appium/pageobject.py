@@ -1,7 +1,7 @@
 import time
-from ..selenium import SeleniumPageObject
+from ..selenium import SeleniumPageObject, find_by, cacheable
 
-__all__ = ['AppiumPageObject']
+__all__ = ['AppiumPageObject', 'find_by', 'cacheable']
 
 class AppiumPageObject(SeleniumPageObject):
 
