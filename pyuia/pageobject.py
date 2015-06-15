@@ -53,10 +53,10 @@ def cacheable(lookup):
 class PageObject(object):
 
     _WAIT_INTERVAL = 1
-    _WARN_TIMEOUT = 10
-    _WAIT_TIMEOUT = 60
-    _PAGE_WARN_TIMEOUT = 10
-    _PAGE_WAIT_TIMEOUT = 60
+    _WARN_TIMEOUT = 5
+    _WAIT_TIMEOUT = 10
+    _PAGE_WARN_TIMEOUT = 5
+    _PAGE_WAIT_TIMEOUT = 10
     
     def __init__(self, context, not_found_exceptions):
         self._context = context
