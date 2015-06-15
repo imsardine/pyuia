@@ -69,14 +69,10 @@ class PageObject(object):
                 exceptions.append(not_found_exceptions)
         self._not_found_exceptions = tuple(exceptions)
 
-    def _page_object(self, page_class, wait_for_loaded=True):
+    def _go_to(self, page_class):
         """Instantiate a page object."""
         page = get_page_object(page_class, self._context)
-        if wait_for_loaded:
-            page._invalidate_locator_cache()
-            page.wait_for_page_loaded(self.__class__)
-            page._invalidate_locator_cache()
-
+        page.wait_for_page_loaded(self.__class__)
         return page
 
     def _invalidate_elements_cache(self):
@@ -90,7 +86,7 @@ class PageObject(object):
         start_time = time.time()
         timeout_warn = start_time + timeout_warn
         timeout = start_time + timeout
-        handlers = self._get_page_transition_handlers(from_page_class)
+        handlers = self._get_page_entry_handlers(from_page_class)
 
         while True:
             try:
@@ -116,9 +112,9 @@ class PageObject(object):
 
         return self
 
-    def _get_page_transition_handlers(self, from_page_class): pass
+    def _get_page_entry_handlers(self, from_page_class): pass
 
-    def assert_on_this_page(self): pass
+    def assert_on_this_page(self, from_page_class): pass
 
     def _on_page_entry(self, from_page_class):
         """To put the page in a known state."""
