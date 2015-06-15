@@ -313,10 +313,11 @@ class PageObject(object):
                         handlers=None, timeout=None):
         self._wait_absent(locators, timeout_warn, minwait, handlers, timeout, check_visibility_only=True)
 
-    def _handle_conditional_views(self, handlers, duration=5):
-        timeout = time.time() + duration
+    def _watch(self, handlers, max_duration=5):
+        timeout = time.time() + max_duration
         while True:
             handlers = self._consult_handlers(handlers)
+            if not handlers: break
             if time.time() > timeout: break
 
     def _consult_handlers(self, handlers):
