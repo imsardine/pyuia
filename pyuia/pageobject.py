@@ -72,6 +72,19 @@ class PageObject(object):
     def _go_to(self, page_class):
         """Instantiate a page object."""
         page = get_page_object(page_class, self._context)
+        page._from_page_class = self.__class__
+
+        page.wait_for_page_loaded(self.__class__)
+        return page
+
+    def _back_to(self, page_class=None):
+        if not page_class:
+            if not hasattr(self, '_from_page_class'):
+                raise RuntimeError("_back_to(page_class) don't know where to go. You can explicitly specify "
+                                   "'page_class' or implement page transition with _go_to(page_class).")
+            page_class = self._from_page_class
+        page = get_page_object(page_class, self._context)
+
         page.wait_for_page_loaded(self.__class__)
         return page
 
