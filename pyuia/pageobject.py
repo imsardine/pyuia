@@ -357,7 +357,7 @@ class PageObject(object):
 
         # consult the handler again later, or drop it.
         del handlers[0]
-        if not element or (self._is_displayed(element) and handler(element)):
+        if not element or not self._is_displayed(element) or handler(element):
             handlers.append((locator, handler))
 
         _logger.debug('Rotated/modified handlers: %s', [h[0] for h in handlers])
