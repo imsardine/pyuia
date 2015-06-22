@@ -25,7 +25,8 @@ _strategy_kwargs = ['id_', 'xpath', 'link_text', 'partial_link_text',
 
 from pyuia import cacheable as cacheable_decorator # naming conflict between global and parameter names
 
-def find_by(how=None, using=None, multiple=False, cacheable=True, context=None, driver_attr='_driver', **kwargs):
+def find_by(how=None, using=None, multiple=False, cacheable=True, if_exists=False,
+            context=None, driver_attr='_driver', **kwargs):
     def func(self):
         # context - driver or a certain element
         ctx = context(self) if callable(context) else getattr(self, driver_attr)
@@ -44,7 +45,12 @@ def find_by(how=None, using=None, multiple=False, cacheable=True, context=None, 
         suffix = key[:-1] if key.endswith('_') else key # find_element(s)_by_xxx
         prefix = 'find_elements_by' if multiple else 'find_element_by'
         lookup = getattr(ctx, '%s_%s' % (prefix, suffix))
-        return lookup(value)
+
+        try:
+            return lookup(value)
+        except NoSuchElementException:
+            if if_exists: return None
+            raise
 
     return cacheable_decorator(func) if cacheable else func
 
