@@ -122,10 +122,9 @@ class PageObject(object):
 
         self._log_screenshot('Already on the page.')
 
-        try:
-            self._on_page_entry(from_page_class)
+        # return True to indicate UI changed.
+        if self._on_page_entry(from_page_class):
             self._log_screenshot('Page loaded.')
-        except NotImplementedError: pass
 
         return self
 
@@ -135,7 +134,7 @@ class PageObject(object):
 
     def _on_page_entry(self, from_page_class):
         """To put the page in a known state."""
-        raise NotImplementedError()
+        pass
 
     def _log_screenshot(self, msg, *args, **kwargs):
         kwargs['page'] = self
