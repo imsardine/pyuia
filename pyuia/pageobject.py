@@ -108,10 +108,7 @@ class PageObject(object):
                 self._invalidate_elements_cache()
                 self.assert_on_this_page(from_page_class)
                 break
-            except Exception:
-                # catch all exceptions, so locators that are involved in page
-                # assertion can raise any exceptions (in addition to
-                # AssertionError) to indicate some violation of assumptions.
+            except AssertionError:
                 if time.time() > timeout_warn:
                     self._log_screenshot(
                         'Wait for page loaded. Time elapsed = [%s]s.',
