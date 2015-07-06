@@ -29,7 +29,15 @@ def find_by(how=None, using=None, multiple=False, cacheable=True, if_exists=Fals
             context=None, driver_attr='_driver', **kwargs):
     def func(self):
         # context - driver or a certain element
-        ctx = context(self) if callable(context) else getattr(self, driver_attr)
+        if callable(context):
+            ctx = context(self)
+            if not ctx:
+                if if_exists:
+                    return None
+                else:
+                    raise NoSuchElementException("The element as the context doesn't exist.")
+        else:
+            ctx = getattr(self, driver_attr)
 
         # 'how' AND 'using' take precedence over keyword arguments
         if how and using:
@@ -52,5 +60,5 @@ def find_by(how=None, using=None, multiple=False, cacheable=True, if_exists=Fals
             if if_exists: return None
             raise
 
-    return cacheable_decorator(func) if cacheable else func
+    return cacheable_decorator(func, cache_none=not if_exists) if cacheable else func
 

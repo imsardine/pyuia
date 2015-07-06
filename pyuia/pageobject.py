@@ -37,7 +37,7 @@ _NOT_FOUND_EXCEPTIONS = (ElementNotFoundError,)
 
 _ELEMENTS_CACHE_ATTR = '_pyuia_elements_cache'
 
-def cacheable(lookup):
+def cacheable(lookup, cache_none=True):
     def func(self):
         if not hasattr(self, _ELEMENTS_CACHE_ATTR):
             setattr(self, _ELEMENTS_CACHE_ATTR, {}) # {callable_id: element(s)}
@@ -45,7 +45,9 @@ def cacheable(lookup):
 
         key = id(lookup)
         if key not in cache:
-            cache[key] = lookup(self)
+            result = lookup(self)
+            if result is None and not cache_none: return
+            cache[key] = result
         return cache[key]
 
     return func
