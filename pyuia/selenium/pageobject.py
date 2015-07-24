@@ -8,7 +8,9 @@ _logger = logging.getLogger(__name__)
 class SeleniumPageObject(PageObject):
 
     def __init__(self, context):
-        PageObject.__init__(self, context, NoSuchElementException)
+        PageObject.__init__(
+            self, context,
+            (NoSuchElementException, StaleElementReferenceException))
 
     @property
     def _driver(self):

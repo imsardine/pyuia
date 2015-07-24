@@ -71,6 +71,9 @@ class PageObject(object):
                 exceptions.append(not_found_exceptions)
         self._not_found_exceptions = tuple(exceptions)
 
+        exceptions.append(AssertionError)
+        self._page_assertion_exceptions = tuple(exceptions)
+
     def _go_to(self, page_class):
         """Instantiate a page object."""
         page = get_page_object(page_class, self._context)
@@ -108,7 +111,7 @@ class PageObject(object):
                 self._invalidate_elements_cache()
                 self.assert_on_this_page(from_page_class)
                 break
-            except AssertionError:
+            except self._page_assertion_exceptions:
                 if time.time() > timeout_warn:
                     self._log_screenshot(
                         'Wait for page loaded. Time elapsed = [%s]s.',
