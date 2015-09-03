@@ -28,8 +28,25 @@ _strategy_kwargs = ['id_', 'xpath', 'link_text', 'partial_link_text',
 from pyuia import cacheable as cacheable_decorator # naming conflict between global and parameter names
 
 def find_by(how=None, using=None, multiple=False, cacheable=True, if_exists=False,
-            context=None, driver_attr='_driver', **kwargs):
+            context=None, driver_attr='_driver', max_swipe_times=5, **kwargs):
+
+
     def func(self):
+
+        def swipe_up(times=1):
+            """Swipe up from [500, 1800] to [500, 400] within 1 sec. 
+                Default swipe times is 1."""
+            for i in range(times):
+                ctx.swipe(500, 1800, 500, 400, 1000)
+
+
+        def swipe_down(times=1):
+            """Swipe down from [500, 400] to [500, 1800] within 1 sec. 
+                Default swipe times is 1."""
+            for i in range(times):
+                ctx.swipe(500, 400, 500, 1800, 1000)
+
+
         # context - driver or a certain element
         if callable(context):
             ctx = context(self)
@@ -56,11 +73,19 @@ def find_by(how=None, using=None, multiple=False, cacheable=True, if_exists=Fals
         prefix = 'find_elements_by' if multiple else 'find_element_by'
         lookup = getattr(ctx, '%s_%s' % (prefix, suffix))
 
-        try:
-            return lookup(value)
-        except NoSuchElementException:
-            if if_exists: return None
-            raise
+
+        current_time = 0
+        while True:
+            try:
+                return lookup(value)
+            except NoSuchElementException:
+                if if_exists: return None
+                if current_time ==0:
+                    swipe_down(max_swipe_times)
+                else:
+                    if current_time > max_swipe_times: raise
+                    swipe_up()
+                    
+                current_time+=1
 
     return cacheable_decorator(func, cache_none=not if_exists) if cacheable else func
-
