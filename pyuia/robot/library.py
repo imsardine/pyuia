@@ -32,9 +32,18 @@ def _state_capturing_decorator(method):
 class _StateCapturing(type):
 
       def __new__(cls, clsname, bases, attrs):
+          white_list = [
+              'open_session',
+              'close_session',
+              'close_all_sessions',
+              'switch_device',
+              'open_app',
+              'close_app',
+          ]
+
           for name, obj in attrs.items():
               if not (inspect.isroutine(obj) and not name.startswith('_')): continue
-              if name in ['open_app', 'close_app', 'close_all_apps', 'switch_device']: continue
+              if name in white_list: continue
               attrs[name] = _state_capturing_decorator(obj)
           return type.__new__(cls, clsname, bases, attrs)
 
@@ -48,17 +57,40 @@ class BaseAppLibrary(object):
     def __init__(self):
         self._cache = ConnectionCache()
 
-    def open_app(self, device_id, alias=None):
-        _logger.info('Open app; device ID = [%s], alias = [%s])', device_id, alias)
+    def open_session(self, device_id, alias=None):
+        """Open a session.
+
+        ``device_id`` is an identifier for looking up configurations of a specific device.
+
+        The optional ``alias`` provided here can be used to switch between sessions/devices later.
+        See `Switch Device` for more details.
+
+        """
+        _logger.info('Open session; device ID = [%s], alias = [%s])', device_id, alias)
 
         # init context and install delegates
         context = self._init_context(device_id)
         context._log_screenshot_delegate = self._log_screenshot_delegate
         context._log_page_source_delegate = self._log_page_source_delegate
-        context.logs_all = [] # accumulate logs of each step
 
+        self._cache.register(RFConnectionCache(context), alias)
+
+    def open_app(self, reset=None):
+        """Open the app.
+
+        To reset app state prior to opening the app, pass a non-empty string to ``reset`` argument.
+
+        Examples:
+
+        | Open App | reset | # reset app state        |
+        | Open App |       | # do not reset app state |
+
+        """
+        context = self._current_context
+        context.open_app(bool(reset))
+
+        context.logs_all = [] # accumulate logs of each step
         log_text('\n'.join(context.get_initial_logs()), 'APP LOGS (Initial)', 'app_logs_initial_', '.log')
-        return self._cache.register(RFConnectionCache(context), alias)
 
     def _init_context(self):
         raise NotImplementedError()
@@ -80,14 +112,29 @@ class BaseAppLibrary(object):
         source, ext = self._current_context.dump_page_source()
         log_text(source, msg, prefix='page_source_', suffix='.%s' % ext, level=level)
 
-    def close_app(self):
+    def close_session(self):
+        """Terminate current session."""
         self._cache.current.close()
 
-    def close_all_apps(self):
+    def close_all_sessions(self):
+        """Terminate all open sessions."""
         self._cache.close_all()
 
-    def switch_device(self, alias_or_index):
-        self._cache.switch(alias_or_index)
+    def close_app(self):
+        """Close the app."""
+        self._cache.current.close_app()
+
+    def switch_device(self, alias):
+        """Switch between sessions/devices using alias.
+
+        Examples:
+
+        | Open App      | A | # current session/device is A      |
+        | Open App      | B | # current session/device becomes B |
+        | Switch Device | A | # switch back to A                 |
+
+        """
+        self._cache.switch(alias)
 
     def _capture_state(self, after=False, err=None):
         # To increase efficiency, screenshots are no longer taken automatically.
@@ -121,9 +168,12 @@ class RFConnectionCache(object):
         self._context = context
 
     def close(self):
+        self._context.quit()
+
+    def close_app(self):
         # all statements suppress possible errors, or other sessions won't be closed.
         self._capture_state()
-        self._context.quit()
+        self._context.close_app()
 
     def _capture_state(self):
         failed = None
