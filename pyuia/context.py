@@ -38,6 +38,20 @@ class AppContext(object):
     def get_new_logs(self):
         raise NotImplementedError()
 
+    def open_app(self, reset):
+        """Open the app.
+
+        Args:
+            reset: Whether to reset app state prior to opening the app.
+
+        """
+        raise NotImplementedError()
+
+    def close_app(self):
+        """Close the app."""
+        raise NotImplementedError()
+
     def quit(self):
+        """Terminate the session."""
         raise NotImplementedError()
 
