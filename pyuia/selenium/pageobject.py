@@ -32,30 +32,29 @@ def find_by(how=None, using=None, multiple=False, cacheable=True, if_exists=Fals
 
     def func(self):
 
-        def swipe_up(scrollable_view):
+        def swipe(scrollable_view, up=True):
             # Get start point
-            start_x = scrollable_view.location.get('x')+scrollable_view.size.get('width')*0.5
-            start_y = scrollable_view.location.get('y')+scrollable_view.size.get('height')*0.9
-            start = {"x": start_x, "y": start_y}
+            horizontal_midpoint_of_scrollable_view = scrollable_view.location.get('x') + scrollable_view.size.get('width')*0.5
+            vertical_base_of_scrollable_view = scrollable_view.location.get('y')
+            vertical_addition_base = scrollable_view.size.get('height')
 
-            # Get end point
-            end_x = scrollable_view.location.get('x')+scrollable_view.size.get('width')*0.5
-            end_y = scrollable_view.location.get('y')+scrollable_view.size.get('height')*0.1
-            end = {"x": end_x, "y": end_y}
+            if up:
+                # Get start point
+                start_point_y = vertical_base_of_scrollable_view + vertical_addition_base*0.9
+                start = {'x': horizontal_midpoint_of_scrollable_view, 'y': start_point_y}
 
-            
-            ctx.swipe(start.get('x'), start.get('y'), end.get('x'), end.get('y'), 1000)
-            
-        def swipe_down(scrollable_view):
-            # Get start point
-            start_x = scrollable_view.location.get('x')+scrollable_view.size.get('width')*0.5
-            start_y = scrollable_view.location.get('y')+scrollable_view.size.get('height')*0.1
-            start = {"x": start_x, "y": start_y}
+                # Get end point
+                end_point_y = vertical_base_of_scrollable_view + vertical_addition_base*0.1
+                end = {'x': horizontal_midpoint_of_scrollable_view, 'y': end_point_y}
 
-            # Get end point
-            end_x = scrollable_view.location.get('x')+scrollable_view.size.get('width')*0.5
-            end_y = scrollable_view.location.get('y')+scrollable_view.size.get('height')*0.9
-            end = {"x": end_x, "y": end_y}
+            else:
+                # Get start point
+                start_point_y = vertical_base_of_scrollable_view + vertical_addition_base*0.1
+                start = {'x': horizontal_midpoint_of_scrollable_view, 'y': start_point_y}
+
+                # Get end point
+                end_point_y = vertical_base_of_scrollable_view + vertical_addition_base*0.9
+                end = {'x': horizontal_midpoint_of_scrollable_view, 'y': end_point_y}
 
             ctx.swipe(start.get('x'), start.get('y'), end.get('x'), end.get('y'), 1000)
 
@@ -101,7 +100,7 @@ def find_by(how=None, using=None, multiple=False, cacheable=True, if_exists=Fals
                 else:
                     if current_time > max_swipe_times: raise
                     if scrollable_view:
-                        swipe_up(scrollable_view)
+                        swipe(scrollable_view, up=True)
                     
                 current_time+=1
 
