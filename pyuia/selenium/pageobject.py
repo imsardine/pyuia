@@ -32,7 +32,7 @@ def find_by(how=None, using=None, multiple=False, cacheable=True, if_exists=Fals
 
     def func(self):
 
-        def swipe(scrollable_view, up=True):
+        def swipe(scrollable_view, up=True, swipe_times=1):
             # Get start point
             horizontal_midpoint_of_scrollable_view = scrollable_view.location.get('x') + scrollable_view.size.get('width')*0.5
             vertical_base_of_scrollable_view = scrollable_view.location.get('y')
@@ -56,7 +56,8 @@ def find_by(how=None, using=None, multiple=False, cacheable=True, if_exists=Fals
                 end_point_y = vertical_base_of_scrollable_view + vertical_addition_base*0.9
                 end = {'x': horizontal_midpoint_of_scrollable_view, 'y': end_point_y}
 
-            ctx.swipe(start.get('x'), start.get('y'), end.get('x'), end.get('y'), 1000)
+            for x in range(swipe_times):
+                ctx.swipe(start.get('x'), start.get('y'), end.get('x'), end.get('y'), 1000)
 
 
         # context - driver or a certain element
@@ -94,9 +95,8 @@ def find_by(how=None, using=None, multiple=False, cacheable=True, if_exists=Fals
 
             except NoSuchElementException:
                 if if_exists: return None
-                if current_time ==0:
-                    pass
-                    # swipe_down(max_swipe_times)
+                if current_time==0 and scrollable_view:
+                    swipe(scrollable_view, up=False, swipe_times=max_swipe_times)
                 else:
                     if current_time > max_swipe_times: raise
                     if scrollable_view:
