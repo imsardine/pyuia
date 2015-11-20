@@ -28,48 +28,52 @@ _strategy_kwargs = ['id_', 'xpath', 'link_text', 'partial_link_text',
 from pyuia import cacheable as cacheable_decorator # naming conflict between global and parameter names
 
 def find_by(how=None, using=None, multiple=False, cacheable=True, if_exists=False,
-            context=None, driver_attr='_driver', max_swipe_times=5, scrollable=None, **kwargs):
+            context=None, scrollable=False, scroll_forward=True, scroll_vertically=True,
+            scroll_margin=None, maximum_scrolls=5, driver_attr='_driver', **kwargs):
+    """Create a callable which can be evaluated lazily to find UI elements.
 
-    def func(self):
+    This function implements the concept mentioned in Page Factory (or PageFactory) pattern (https://code.google.com/p/selenium/wiki/PageFactory). It helps to reduce the amount of boilerplate code while implementing page objects. For more details, see https://jeremykao.wordpress.com/2015/06/10/pagefactory-pattern-in-python/.
 
-        def swipe(scrollable_view, up=True, swipe_times=1):
-            # Get start point
-            horizontal_midpoint_of_scrollable_view = scrollable_view.location.get('x') + scrollable_view.size.get('width')*0.5
-            vertical_base_of_scrollable_view = scrollable_view.location.get('y')
-            vertical_addition_base = scrollable_view.size.get('height')
+    Args:
+        how: Locator strategy. It can be one of the class variables defined in
+            `selenium.webdriver.common.by.By`, e.g., `By.ID`, `By.NAME` etc.
+        using: The locator.
+        multiple: Whether the lookup return multiple elements.
+        cacheable: Whether to cache the result.
+        if_exists: Whether to return `None` to indicate the element doesn't exist,
+            instead of raising an exception.
+        context: The starting point of a search, and the scrollable container
+            if argument `scrollable` is set to `True` explicitly.
+        scrollable: Whether to perform scroll actions if the element is not found.
+            Defaults to `False`.
+        scroll_forward: Whether to scroll forward or backward. Defaults to `True`.
+        scroll_vertically: Whether to scroll vertically or horizontally. Defaults to `True`.
+        scroll_margin: No-touch zone. Defaults to `None`.
+        maximum_scrolls: The maximum number of attempts to scroll. Defaults to 5.
+        driver_attr: The attribute name for getting the reference to WebDriver. Defaults to '_driver'.
 
-            if up:
-                # Get start point
-                start_point_y = vertical_base_of_scrollable_view + vertical_addition_base*0.9
-                start = {'x': horizontal_midpoint_of_scrollable_view, 'y': start_point_y}
+    Kwargs:
+        The following keyword arguments are supported for various locator strategies: id_ (to avoid conflict with the built-in keyword id), name, class_name, css_selector, tag_name, xpath, link_text, and partial_link_text.
 
-                # Get end point
-                end_point_y = vertical_base_of_scrollable_view + vertical_addition_base*0.1
-                end = {'x': horizontal_midpoint_of_scrollable_view, 'y': end_point_y}
+    Returns: A callable which can be evaluated lazily to find UI elements.
 
-            else:
-                # Get start point
-                start_point_y = vertical_base_of_scrollable_view + vertical_addition_base*0.1
-                start = {'x': horizontal_midpoint_of_scrollable_view, 'y': start_point_y}
+    """
+    def func(page_object):
+        driver = getattr(page_object, driver_attr)
 
-                # Get end point
-                end_point_y = vertical_base_of_scrollable_view + vertical_addition_base*0.9
-                end = {'x': horizontal_midpoint_of_scrollable_view, 'y': end_point_y}
-
-            for x in range(swipe_times):
-                ctx.swipe(start.get('x'), start.get('y'), end.get('x'), end.get('y'), 1000)
-
-
-        # context - driver or a certain element
-        if callable(context):
-            ctx = context(self)
+        # ctx - driver or a certain element
+        if context is None:
+            ctx = driver
+            container = None
+        elif callable(context):
+            container = ctx = context(page_object)
             if not ctx:
                 if if_exists:
                     return None
                 else:
                     raise NoSuchElementException("The element as the context doesn't exist.")
-        else:
-            ctx = getattr(self, driver_attr)
+        else: # element
+            container = ctx = context
 
         # 'how' AND 'using' take precedence over keyword arguments
         if how and using:
@@ -86,22 +90,71 @@ def find_by(how=None, using=None, multiple=False, cacheable=True, if_exists=Fals
         prefix = 'find_elements_by' if multiple else 'find_element_by'
         lookup = getattr(ctx, '%s_%s' % (prefix, suffix))
 
-        scrollable_view = scrollable(self) if callable(scrollable) else scrollable
-
-        current_time = 0
+        scrolls = 0;
         while True:
             try:
                 return lookup(value)
-
             except NoSuchElementException:
-                if if_exists: return None
-                if current_time==0 and scrollable_view:
-                    swipe(scrollable_view, up=False, swipe_times=max_swipe_times)
-                else:
-                    if current_time > max_swipe_times: raise
-                    if scrollable_view:
-                        swipe(scrollable_view, up=True)
-                    
-                current_time+=1
+                if not scrollable or scrolls == maximum_scrolls:
+                    if if_exists: return None
+                    raise
+
+                scroller = _get_scroller(page_object, container, scrollable)
+                _scroll(page_object, driver, scroller, scroll_forward, scroll_vertically, scroll_margin)
+                scrolls += 1
 
     return cacheable_decorator(func, cache_none=not if_exists) if cacheable else func
+
+def _get_scroller(page_object, container, scrollable):
+    if callable(scrollable): # find_by
+        scroller = scrollable(page_object)
+        if not scroller:
+            raise ValueError("The element as the scrollable container doesn't exist.")
+        return scroller
+    elif scrollable is True:
+        if container is None:
+            raise ValueError("The argument 'context' is mandatory if argument 'scrollable' is set to True explicitly.")
+        else:
+            return container
+    else: # element
+        return scrollable
+
+def _scroll(page_object, driver, scroller, forward, vertically, margin):
+    loc, size = scroller.location, scroller.size
+    x, y, w, h = loc['x'], loc['y'], size['width'], size['height']
+
+    if vertically:
+        points = [(x + w / 2, y + h - 1), (x + w / 2, y + 1)]
+    else:
+        points = [(x + w - 1, y + h / 2), (x + 1, y + h / 2)]
+
+    if not forward:
+        points.reverse()
+
+    x1, y1 = points[0]
+    x2, y2 = points[1]
+
+    # take margin (no-touch zone) into account
+    if isinstance(margin, (int, float)):
+        if isinstance(margin, float):
+            margin = int((h if vertically else w) * margin)
+
+        offset = margin if forward else -margin
+
+        if vertically:
+            y1 += offset
+        else:
+            x1 += offset
+    elif margin is not None:
+        margin = margin(page_object) if callable(margin) else margin
+        if margin is not None:
+            loc, size = margin.location, margin.size
+            x, y, w, h = loc['x'], loc['y'], size['width'], size['height']
+
+            if vertically:
+                y1 = y - 1 if forward else y + h + 1
+            else:
+                x1 = x - 1 if forward else x + w + 1
+
+    driver.swipe(x1, y1, x2, y2, 2000)
+
