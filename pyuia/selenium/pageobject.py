@@ -18,8 +18,11 @@ class SeleniumPageObject(PageObject):
 
     def _is_displayed(self, element):
         try:
-            return element.is_displayed()
+            displayed = element.is_displayed()
+            _logger.debug('Element (%s) is displayed? %s.', element.id, displayed)
+            return displayed
         except StaleElementReferenceException:
+            logging.debug('Element (%s) is NOT displayed because of stale reference.', element.id)
             return False
 
 _strategy_kwargs = ['id_', 'xpath', 'link_text', 'partial_link_text',
