@@ -32,7 +32,7 @@ from pyuia import cacheable as cacheable_decorator # naming conflict between glo
 
 def find_by(how=None, using=None, multiple=False, cacheable=True, if_exists=False,
             context=None, scrollable=False, scroll_forward=True, scroll_vertically=True,
-            scroll_margin=None, maximum_scrolls=5, driver_attr='_driver', **kwargs):
+            scroll_starting_padding=None, scroll_ending_padding=None, maximum_scrolls=5, driver_attr='_driver', **kwargs):
     """Create a callable which can be evaluated lazily to find UI elements.
 
     This function implements the concept mentioned in Page Factory (or PageFactory) pattern (https://code.google.com/p/selenium/wiki/PageFactory). It helps to reduce the amount of boilerplate code while implementing page objects. For more details, see https://jeremykao.wordpress.com/2015/06/10/pagefactory-pattern-in-python/.
@@ -51,7 +51,8 @@ def find_by(how=None, using=None, multiple=False, cacheable=True, if_exists=Fals
             Defaults to `False`.
         scroll_forward: Whether to scroll forward or backward. Defaults to `True`.
         scroll_vertically: Whether to scroll vertically or horizontally. Defaults to `True`.
-        scroll_margin: No-touch zone. Defaults to `None`.
+        scroll_starting_padding: No-touch starting zone. Defaults to `None`.
+        scroll_ending_padding: No-touch ending zone. Defaults to `None`.
         maximum_scrolls: The maximum number of attempts to scroll. Defaults to 5.
         driver_attr: The attribute name for getting the reference to WebDriver. Defaults to '_driver'.
 
@@ -103,7 +104,7 @@ def find_by(how=None, using=None, multiple=False, cacheable=True, if_exists=Fals
                     raise
 
                 scroller = _get_scroller(page_object, container, scrollable)
-                _scroll(page_object, driver, scroller, scroll_forward, scroll_vertically, scroll_margin)
+                _scroll(page_object, driver, scroller, scroll_forward, scroll_vertically, scroll_starting_padding, scroll_ending_padding)
                 scrolls += 1
 
     return cacheable_decorator(func, cache_none=not if_exists) if cacheable else func
@@ -122,7 +123,7 @@ def _get_scroller(page_object, container, scrollable):
     else: # element
         return scrollable
 
-def _scroll(page_object, driver, scroller, forward, vertically, margin):
+def _scroll(page_object, driver, scroller, forward, vertically, starting_padding, ending_padding):
     loc, size = scroller.location, scroller.size
     x, y, w, h = loc['x'], loc['y'], size['width'], size['height']
 
@@ -138,26 +139,46 @@ def _scroll(page_object, driver, scroller, forward, vertically, margin):
     x2, y2 = points[1]
 
     # take margin (no-touch zone) into account
-    if isinstance(margin, (int, float)):
-        if isinstance(margin, float):
-            margin = int((h if vertically else w) * margin)
+    if isinstance(starting_padding, (int, float)):
+        if isinstance(starting_padding, float):
+            starting_padding = int((h if vertically else w) * starting_padding)
 
-        offset = margin if forward else -margin
+        offset = starting_padding if forward else -starting_padding
 
         if vertically:
             y1 += offset
         else:
             x1 += offset
-    elif margin is not None:
-        margin = margin(page_object) if callable(margin) else margin
-        if margin is not None:
-            loc, size = margin.location, margin.size
+    elif starting_padding is not None:
+        starting_padding = starting_padding(page_object) if callable(starting_padding) else starting_padding
+        if starting_padding is not None:
+            loc, size = starting_padding.location, starting_padding.size
             x, y, w, h = loc['x'], loc['y'], size['width'], size['height']
 
             if vertically:
                 y1 = y - 1 if forward else y + h + 1
             else:
                 x1 = x - 1 if forward else x + w + 1
+    
+    if isinstance(ending_padding, (int, float)):
+        if isinstance(ending_padding, float):
+            ending_padding = int((h if vertically else w) * ending_padding)
 
+        offset = ending_padding if forward else -ending_padding
+
+        if vertically:
+            y2 += offset
+        else:
+            x2 += offset
+    elif ending_padding is not None:
+        ending_padding = ending_padding(page_object) if callable(ending_padding) else ending_padding
+        if ending_padding is not None:
+            loc, size = ending_padding.location, ending_padding.size
+            x, y, w, h = loc['x'], loc['y'], size['width'], size['height']
+
+            if vertically:
+                y2 = y + h + 1 if forward else y - 1
+            else:
+                x2 = x + w + 1 if forward else x - 1
     driver.swipe(x1, y1, x2, y2, 2000)
 
