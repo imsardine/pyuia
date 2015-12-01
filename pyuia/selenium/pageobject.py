@@ -143,7 +143,7 @@ def _scroll(page_object, driver, scroller, forward, vertically, starting_padding
         if isinstance(starting_padding, float):
             starting_padding = int((h if vertically else w) * starting_padding)
 
-        offset = starting_padding if forward else -starting_padding
+        offset = -starting_padding if forward else starting_padding
 
         if vertically:
             y1 += offset
