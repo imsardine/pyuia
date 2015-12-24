@@ -180,5 +180,5 @@ def _scroll(page_object, driver, scroller, forward, vertically, starting_padding
                 y2 = y + h + 1 if forward else y - 1
             else:
                 x2 = x + w + 1 if forward else x - 1
-    driver.swipe(x1, y1, x2, y2, abs(x1-x2+y1-y2)*20)
+    driver.swipe(x1, y1, x2, y2, abs(x1-x2+y1-y2)*3)
 
