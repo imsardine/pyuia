@@ -106,17 +106,19 @@ class PageObject(object):
         timeout = start_time + timeout
         handlers = self._get_page_entry_handlers(from_page_class)
 
+        warned = False
         while True:
             try:
                 self._invalidate_elements_cache()
                 self.assert_on_this_page(from_page_class)
                 break
             except self._page_assertion_exceptions:
-                if time.time() > timeout_warn:
+                if not warned and time.time() > timeout_warn:
                     self._log_screenshot(
                         'Wait for page loaded. Time elapsed = [%s]s.',
                         time.time() - start_time,
                         level=logging.WARN)
+                    warned = True
 
                 handlers = self._consult_handlers(handlers)
                 time.sleep(self._WAIT_INTERVAL)
@@ -203,6 +205,7 @@ class PageObject(object):
         single_loc = not _is_iterable(locators)
         locators = _to_iterable(locators)
 
+        warned = False
         while True:
             elements = []
             for locator in locators:
@@ -221,12 +224,13 @@ class PageObject(object):
             if len(elements) == len(locators):
                 return elements[0] if single_loc else elements
 
-            if time.time() > timeout_warn:
+            if not warned and time.time() > timeout_warn:
                 self._log_screenshot(
                     'Wait ALL elements to be present. locators = %s, '
                     'check_visibility = [%s], time elapsed = [%s]s.',
                     locators, check_visibility, time.time() - start_time,
                     level=logging.WARN)
+                warned = True
             handlers = self._consult_handlers(handlers)
 
             time.sleep(self._WAIT_INTERVAL)
@@ -249,6 +253,7 @@ class PageObject(object):
         timeout = start_time + timeout
         locators = _to_iterable(locators)
 
+        warned = False
         while True:
             for locator in locators:
                 try:
@@ -263,10 +268,11 @@ class PageObject(object):
                 if check_visibility and not self._is_displayed(element): continue
                 return element
 
-            if time.time() > timeout_warn:
+            if not warned and time.time() > timeout_warn:
                 self._log_screenshot(
                     'Wait ANY present. locators = %s, time elapsed = [%s]s.',
                     locators, time.time() - start_time, level=logging.WARN)
+                warned = True
             handlers = self._consult_handlers(handlers)
 
             time.sleep(self._WAIT_INTERVAL)
@@ -291,6 +297,7 @@ class PageObject(object):
         timeout = start_time + timeout
         locators = _to_iterable(locators)
 
+        warned = False
         while True:
             # to avoid the situation that elements are absent simply because
             # other elements such as error dialogs are displayed.
@@ -313,12 +320,13 @@ class PageObject(object):
             # wait for at least 'minwait' seconds to make sure target
             # element(s) won't appear at this time.
             if not any_invalid and time.time() > timeout_appear: return
-            if time.time() > timeout_warn:
+            if not warned and time.time() > timeout_warn:
                 self._log_screenshot(
                     'Wait ALL elements to be absent. locators = %s, '
                     'check_visibility_only = [%s], time elapsed = [%s]s.',
                     locators, check_visibility_only, time.time() - start_time, 
                     level=logging.WARN)
+                warned = True
 
             time.sleep(self._WAIT_INTERVAL)
             if time.time() > timeout:
