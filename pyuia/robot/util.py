@@ -47,7 +47,7 @@ def log_screenshot(png, msg='SCREENSHOT', prefix='screenshot_', level=logging.IN
     filename = '%s%s.png' % (prefix, int(time.time() * 1000))
     pathname = path.join(_get_log_dir(), filename)
     with open(pathname, 'wb') as f:
-	f.write(png)
+        f.write(png)
     html = '<a href="%s" target="_blank"><img src="%s" width="200"></a>' % (filename, filename)
 
     msg = '%s<br/>%s' % (msg, html) # TODO: HTML encode msg
