@@ -54,7 +54,7 @@ def cacheable(lookup, cache_none=True):
 
 class PageObject(object):
 
-    _WAIT_INTERVAL = 2
+    _WAIT_INTERVAL = 0
     _WARN_TIMEOUT = 5
     _WAIT_TIMEOUT = 10
     _PAGE_WARN_TIMEOUT = 5
