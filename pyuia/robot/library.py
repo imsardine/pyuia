@@ -107,9 +107,12 @@ class BaseAppLibrary(object):
         log_screenshot(self._current_context.take_screenshot_as_png(), msg, level=level)
 
     def _log_page_source_delegate(self, msg, *args, **kwargs):
-        msg = msg % args
         level = kwargs['level'] if 'level' in kwargs else logging.DEBUG
+        if not _logger.isEnabledFor(level):
+            return
+
         page = kwargs['page'] if 'page' in kwargs else None
+        msg = msg % args
 
         if page: msg += ' (%s)' % page.__class__.__name__
         source, ext = self._current_context.dump_page_source()
@@ -189,7 +192,7 @@ class RFConnectionCache(object):
             log_text('\n'.join(context.logs_all), msg, 'app_logs_all_', '.log')
             if not failed: return
 
-            context.log_page_source('PAGE SOURCE (Failed)')
+            context.log_page_source('PAGE SOURCE (Failed)', level=logging.ERROR)
             context.log_screenshot('SCREENSHOT (Failed)', level=logging.ERROR)
         except Exception as e:
             _logger.warning('Fail to capture state. (failed = %s)', failed, exc_info=True)

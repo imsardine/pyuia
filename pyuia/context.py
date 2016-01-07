@@ -29,7 +29,7 @@ class AppContext(object):
             return
 
         msg = msg % args
-        level = kwargs['level'] if 'level' in kwargs else logging.INFO
+        level = kwargs['level'] if 'level' in kwargs else logging.DEBUG
         _logger.log(level, msg)
 
     def get_initial_logs(self):
