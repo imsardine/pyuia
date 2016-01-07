@@ -355,18 +355,20 @@ class PageObject(object):
         handlers = list(handlers)
         _logger.debug('Consult handlers. handlers = %s.', [h[0] for h in handlers])
 
-        for locator, handler in handlers:
-            try:
-                element = locator()
-            except self._not_found_exceptions as e:
-                _logger.debug('The locator (%s) did not resolve to an element.', locator)
-                element = None
+        # consult a handler at a time (rotation)
+        locator, handler = handlers[0]
 
-            # consult the handler again later, or drop it.
-            if element and self._is_displayed(element):
-                if not handler(element):
-                    del handlers[locator]
-                break # consult at most one handler
+        try:
+            element = locator()
+        except self._not_found_exceptions as e:
+            _logger.debug('The locator (%s) did not resolve to an element.', locator)
+            element = None
 
+        # consult the handler again later, or drop it.
+        del handlers[0]
+        if not element or not self._is_displayed(element) or handler(element):
+            handlers.append((locator, handler))
+
+        _logger.debug('Rotated/modified handlers: %s', [h[0] for h in handlers])
         return handlers
 
