@@ -32,14 +32,16 @@ def get_current_test_case():
 
 def _robot_logger_of_level(level):
     # standard levels: DEBUG, INFO, WARNING, ERROR, CRITICAL
-    # robot levels: TRACE, DEBUG, INFO, WARN
+    # robot levels: TRACE, DEBUG, INFO, WARN, ERROR
     from robot.api import logger as robot_logger
     if level == logging.DEBUG:
         return robot_logger.debug
     elif level == logging.INFO:
         return robot_logger.info
-    elif level in (logging.WARNING, logging.ERROR, logging.CRITICAL):
+    elif level == logging.WARNING:
         return robot_logger.warn
+    elif level in (logging.ERROR, logging.CRITICAL):
+        return robot_logger.error
     else:
         assert False, level
 
