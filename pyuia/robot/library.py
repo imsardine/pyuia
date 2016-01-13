@@ -9,7 +9,8 @@ _logger = logging.getLogger(__name__)
 def _state_capturing_decorator(method):
     def decorator(*args, **kwargs):
         name = method.__name__
-        accessor = any(name.startswith(prefix) or name == prefix for prefix in ['is_', 'get_', 'should_be_'])
+        # accessor = any(name.startswith(prefix) or name == prefix for prefix in ['is_', 'get_', 'should_be_'])
+        accessor = False
         self = args[0] # the keyword library itself
 
         self._capture_state()
@@ -86,11 +87,12 @@ class BaseAppLibrary(object):
         | Open App |       | # do not reset app state |
 
         """
+        msg = 'App logs (initial)'
         context = self._current_context
         context.open_app(bool(reset))
 
         context.logs_all = [] # accumulate logs of each step
-        log_text('\n'.join(context.get_initial_logs()), 'APP LOGS (Initial)', 'app_logs_initial_', '.log')
+        log_text('\n'.join(context.get_initial_logs()), msg, 'app_logs_initial_', '.log', level=logging.INFO)
 
     def _init_context(self):
         raise NotImplementedError()
@@ -147,14 +149,20 @@ class BaseAppLibrary(object):
         # Developers should explicitly do that AFTER the UI has been changed.
         if not after: return
 
-        context = self._current_context
+        failed = bool(err)
         try:
-            if after:
-                logs_step = context.get_new_logs()
-                context.logs_all.extend(logs_step)
-                log_text('\n'.join(logs_step), 'APP LOGS (Step)', 'app_logs_step_', '.log')
+            context = self._current_context
+            msg = 'App logs (step, keyword failed? %s)' % failed
+
+            logs_step = context.get_new_logs()
+            context.logs_all.extend(logs_step)
+            log_text('\n'.join(logs_step), msg, 'app_logs_step_', '.log', level=logging.INFO)
+            if not failed: return
+
+            context.log_page_source('Page source', level=logging.INFO)
+            context.log_screenshot('Screenshot', level=logging.INFO)
         except:
-            _logger.warning('Fail to capture state.', exc_info=True)
+            _logger.warning('Fail to capture state. (keyword failed = %s)', failed, exc_info=True)
 
     @property
     def _current_context(self):
@@ -183,17 +191,18 @@ class RFConnectionCache(object):
 
     def _capture_state(self):
         failed = None
-        context = self._context
+
         try:
             failed = is_test_failed()
-            msg = 'APP LOGS (about to quit, failed = %s)' % failed
+            context = self._context
+            msg = 'App logs (about to quit, test failed? %s)' % failed
 
             context.logs_all.extend(context.get_new_logs())
-            log_text('\n'.join(context.logs_all), msg, 'app_logs_all_', '.log')
+            log_text('\n'.join(context.logs_all), msg, 'app_logs_all_', '.log', level=logging.INFO)
             if not failed: return
 
-            context.log_page_source('PAGE SOURCE (Failed)', level=logging.ERROR)
-            context.log_screenshot('SCREENSHOT (Failed)', level=logging.ERROR)
+            context.log_page_source('Page source (test failed)', level=logging.INFO)
+            context.log_screenshot('Screenshot (test failed)', level=logging.INFO)
         except Exception as e:
-            _logger.warning('Fail to capture state. (failed = %s)', failed, exc_info=True)
+            _logger.warning('Fail to capture state. (test failed = %s)', failed, exc_info=True)
 

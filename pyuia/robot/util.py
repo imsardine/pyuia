@@ -45,7 +45,7 @@ def _robot_logger_of_level(level):
     else:
         assert False, level
 
-def log_screenshot(png, msg='SCREENSHOT', prefix='screenshot_', level=logging.INFO):
+def log_screenshot(png, msg='SCREENSHOT', prefix='screenshot_', level=logging.DEBUG):
     filename = '%s%s.png' % (prefix, int(time.time() * 1000))
     pathname = path.join(_get_log_dir(), filename)
     with open(pathname, 'wb') as f:
@@ -55,7 +55,7 @@ def log_screenshot(png, msg='SCREENSHOT', prefix='screenshot_', level=logging.IN
     msg = '%s<br/>%s' % (msg, html) # TODO: HTML encode msg
     _robot_logger_of_level(level)(msg, html=True)
 
-def log_text(text, msg='TEXT', prefix='text', suffix='.txt', level=logging.INFO):
+def log_text(text, msg='TEXT', prefix='text', suffix='.txt', level=logging.DEBUG):
     from robot.api import logger as robot_logger
 
     filename = '%s%s%s' % (prefix, int(time.time() * 1000), suffix)
