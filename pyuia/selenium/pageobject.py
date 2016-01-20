@@ -1,6 +1,7 @@
-import logging
+import sys, logging
 from pyuia import PageObject, cacheable
 from selenium.common.exceptions import NoSuchElementException, StaleElementReferenceException
+from selenium.webdriver.common.by import By
 
 __all__ = ['SeleniumPageObject', 'find_by', 'cacheable']
 _logger = logging.getLogger(__name__)
@@ -25,8 +26,15 @@ class SeleniumPageObject(PageObject):
             logging.debug('Element (%s) is NOT displayed because of stale reference.', element.id)
             return False
 
-_strategy_kwargs = ['id_', 'xpath', 'link_text', 'partial_link_text',
-                    'name', 'tag_name', 'class_name', 'css_selector']
+_strategy_kwargs = {
+    'id_': By.ID,
+    'xpath': By.XPATH,
+    'link_text': By.LINK_TEXT,
+    'partial_link_text': By.PARTIAL_LINK_TEXT,
+    'name': By.NAME,
+    'tag_name': By.TAG_NAME,
+    'class_name': By.CLASS_NAME,
+    'css_selector': By.CSS_SELECTOR }
 
 from pyuia import cacheable as cacheable_decorator # naming conflict between global and parameter names
 
@@ -62,6 +70,17 @@ def find_by(how=None, using=None, multiple=False, cacheable=True, if_exists=Fals
     Returns: A callable which can be evaluated lazily to find UI elements.
 
     """
+    # 'how' AND 'using' take precedence over keyword arguments
+    _how, _using = how, using
+    if not (_how and _using):
+        if len(kwargs) != 1 or kwargs.keys()[0] not in _strategy_kwargs.keys() :
+            raise ValueError(
+                "If 'how' AND 'using' are not specified, one and only one of the following "
+                "valid keyword arguments should be provided: %s." % _strategy_kwargs.keys())
+
+        key = kwargs.keys()[0]
+        _how, _using = _strategy_kwargs[key], kwargs[key]
+
     def func(page_object):
         driver = getattr(page_object, driver_attr)
 
@@ -79,35 +98,32 @@ def find_by(how=None, using=None, multiple=False, cacheable=True, if_exists=Fals
         else: # element
             container = ctx = context
 
-        # 'how' AND 'using' take precedence over keyword arguments
-        if how and using:
-            lookup = ctx.find_elements if multiple else ctx.find_element
-            return lookup(how, using)
-
-        if len(kwargs) != 1 or kwargs.keys()[0] not in _strategy_kwargs :
-            raise ValueError(
-                "If 'how' AND 'using' are not specified, one and only one of the following "
-                "valid keyword arguments should be provided: %s." % _strategy_kwargs)
-
-        key = kwargs.keys()[0]; value = kwargs[key]
-        suffix = key[:-1] if key.endswith('_') else key # find_element(s)_by_xxx
-        prefix = 'find_elements_by' if multiple else 'find_element_by'
-        lookup = getattr(ctx, '%s_%s' % (prefix, suffix))
+        lookup = ctx.find_elements if multiple else ctx.find_element
 
         scrolls = 0;
         while True:
             try:
-                return lookup(value)
-            except NoSuchElementException:
+                return lookup(_how, _using)
+            except NoSuchElementException as e:
                 if not scrollable or scrolls == maximum_scrolls:
                     if if_exists: return None
-                    raise
+                    msg = "%s ; find_by(how='%s', using='%s', multiple=%s, cacheable=%s, " \
+                          "if_exists=%s, context=%s, scrollable=%s)" % \
+                          (str(e), _how, _using, multiple, cacheable, if_exists, context, scrollable)
+                    raise NoSuchElementException(msg), None, sys.exc_info()[2]
 
                 scroller = _get_scroller(page_object, container, scrollable)
-                _scroll(page_object, driver, scroller, scroll_forward, scroll_vertically, scroll_starting_padding, scroll_ending_padding)
+                _scroll(page_object, driver, scroller, scroll_forward,
+                        scroll_vertically, scroll_starting_padding, scroll_ending_padding)
                 scrolls += 1
 
-    return cacheable_decorator(func, cache_none=not if_exists) if cacheable else func
+    func = cacheable_decorator(func, cache_none=not if_exists) if cacheable else func
+
+    # for debugging, expose criteria of the lookup
+    func.__name__ = "find_by(how='%s', using='%s', multiple=%s, cacheable=%s, " \
+                    "if_exists=%s, context=%s, scrollable=%s)" % \
+                    (_how, _using, multiple, cacheable, if_exists, context, scrollable)
+    return func
 
 def _get_scroller(page_object, container, scrollable):
     if callable(scrollable): # find_by
