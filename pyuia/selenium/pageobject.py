@@ -120,9 +120,9 @@ def find_by(how=None, using=None, multiple=False, cacheable=True, if_exists=Fals
     func = cacheable_decorator(func, cache_none=not if_exists) if cacheable else func
 
     # for debugging, expose criteria of the lookup
-    func.__name__ = "find_by(how='%s', using='%s', multiple=%s, cacheable=%s, " \
+    func.__name__ = "find_by(how='%s', using=%s, multiple=%s, cacheable=%s, " \
                     "if_exists=%s, context=%s, scrollable=%s)" % \
-                    (_how, _using, multiple, cacheable, if_exists, context, scrollable)
+                    (_how, repr(_using), multiple, cacheable, if_exists, context, scrollable)
     return func
 
 def _get_scroller(page_object, container, scrollable):
