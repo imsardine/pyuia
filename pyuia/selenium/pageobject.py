@@ -91,7 +91,8 @@ def find_by(how=None, using=None, multiple=False, cacheable=True, if_exists=Fals
 
         # For appium v1.5.0+, since it doesn't support find by name strategy, we have to adjust our pyuia
         # We replace name with xpath
-        # https://github.com/appium/appium/releases/tag/v1.5.0
+        # Github release note: https://github.com/appium/appium/releases/tag/v1.5.0
+        # Discuss thread: https://discuss.appium.io/t/appium-1-5-fails-to-find-element-by-name/8857/10
 
         if method_dic['_how'] == 'name':
             method_dic['_how'] = 'xpath'
