@@ -67,18 +67,11 @@ class BaseAppLibrary(object):
         See `Switch Device` for more details.
 
         """
-
         _logger.info('Open session; device ID = [%s], alias = [%s])', device_id, alias)
         # init context and install delegates
         context = self._init_context(device_id)
         context._log_screenshot_delegate = self._log_screenshot_delegate
         context._log_page_source_delegate = self._log_page_source_delegate
-
-        #from selenium.webdriver.remote.command import Command
-        #status = context.driver.execute(Command.STATUS)
-        #version = str(status['value']['build']['version'])
-        #context.driver.desired_capabilities['appium_version'] = version
-        #context.driver.capabilities['appium_version'] = version
         self._cache.register(RFConnectionCache(context), alias)
 
     def open_app(self, reset=None):

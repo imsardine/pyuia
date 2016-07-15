@@ -71,8 +71,10 @@ def find_by(how=None, using=None, multiple=False, cacheable=True, if_exists=Fals
 
     """
     # 'how' AND 'using' take precedence over keyword arguments
-    #_how, _using = how, using
 
+    # If _how == 'name', we will replace it by 'xpath' in func.
+    # However, since variable cannot be updated in different scope (i.e., find_by & func here),
+    # We use dictionary instead.
     method_dic = {'_how':how, '_using': using}
 
     if not (method_dic['_how'] and method_dic['_using']):
@@ -87,12 +89,12 @@ def find_by(how=None, using=None, multiple=False, cacheable=True, if_exists=Fals
     def func(page_object):
         driver = getattr(page_object, driver_attr)
 
-        # For appium v1.5.3, since it doesn't support find by name strategy, we have to adjust our pyuia
-        # We use xpath to replace name
+        # For appium v1.5.0+, since it doesn't support find by name strategy, we have to adjust our pyuia
+        # We replace name with xpath
         # https://github.com/appium/appium/releases/tag/v1.5.0
+
         if method_dic['_how'] == 'name':
             method_dic['_how'] = 'xpath'
-            #method_dic['_using'] = "//*[@text='" + method_dic['_using'] + "']"
             method_dic['_using'] = "//*[@text='" + method_dic['_using'] + "' or @content-desc='" + method_dic['_using'] + "']"
 
         # ctx - driver or a certain element
