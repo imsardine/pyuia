@@ -68,12 +68,10 @@ class BaseAppLibrary(object):
 
         """
         _logger.info('Open session; device ID = [%s], alias = [%s])', device_id, alias)
-
         # init context and install delegates
         context = self._init_context(device_id)
         context._log_screenshot_delegate = self._log_screenshot_delegate
         context._log_page_source_delegate = self._log_page_source_delegate
-
         self._cache.register(RFConnectionCache(context), alias)
 
     def open_app(self, reset=None):

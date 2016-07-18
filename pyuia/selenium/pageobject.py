@@ -71,18 +71,32 @@ def find_by(how=None, using=None, multiple=False, cacheable=True, if_exists=Fals
 
     """
     # 'how' AND 'using' take precedence over keyword arguments
-    _how, _using = how, using
-    if not (_how and _using):
+
+    # If _how == 'name', we will replace it by 'xpath' in func.
+    # However, since variable cannot be updated in different scope (i.e., find_by & func here),
+    # We use dictionary instead.
+    method_dic = {'_how':how, '_using': using}
+
+    if not (method_dic['_how'] and method_dic['_using']):
         if len(kwargs) != 1 or kwargs.keys()[0] not in _strategy_kwargs.keys() :
             raise ValueError(
                 "If 'how' AND 'using' are not specified, one and only one of the following "
                 "valid keyword arguments should be provided: %s." % _strategy_kwargs.keys())
 
         key = kwargs.keys()[0]
-        _how, _using = _strategy_kwargs[key], kwargs[key]
+        method_dic['_how'], method_dic['_using'] = _strategy_kwargs[key], kwargs[key]
 
     def func(page_object):
         driver = getattr(page_object, driver_attr)
+
+        # For appium v1.5.0+, since it doesn't support find by name strategy, we have to adjust our pyuia
+        # We replace name with xpath
+        # Github release note: https://github.com/appium/appium/releases/tag/v1.5.0
+        # Discuss thread: https://discuss.appium.io/t/appium-1-5-fails-to-find-element-by-name/8857/10
+
+        if method_dic['_how'] == 'name':
+            method_dic['_how'] = 'xpath'
+            method_dic['_using'] = "//*[@text='" + method_dic['_using'] + "' or @content-desc='" + method_dic['_using'] + "']"
 
         # ctx - driver or a certain element
         if context is None:
@@ -101,15 +115,18 @@ def find_by(how=None, using=None, multiple=False, cacheable=True, if_exists=Fals
         lookup = ctx.find_elements if multiple else ctx.find_element
 
         scrolls = 0;
+
         while True:
             try:
-                return lookup(_how, _using)
+                return lookup(method_dic['_how'], method_dic['_using'])
+
             except NoSuchElementException as e:
+
                 if not scrollable or scrolls == maximum_scrolls:
                     if if_exists: return None
                     msg = "%s ; find_by(how='%s', using='%s', multiple=%s, cacheable=%s, " \
                           "if_exists=%s, context=%s, scrollable=%s)" % \
-                          (str(e), _how, _using, multiple, cacheable, if_exists, context, scrollable)
+                          (str(e), method_dic['_how'], method_dic['_using'], multiple, cacheable, if_exists, context, scrollable)
                     raise NoSuchElementException(msg), None, sys.exc_info()[2]
 
                 scroller = _get_scroller(page_object, container, scrollable)
@@ -122,7 +139,7 @@ def find_by(how=None, using=None, multiple=False, cacheable=True, if_exists=Fals
     # for debugging, expose criteria of the lookup
     func.__name__ = "find_by(how='%s', using=%s, multiple=%s, cacheable=%s, " \
                     "if_exists=%s, context=%s, scrollable=%s)" % \
-                    (_how, repr(_using), multiple, cacheable, if_exists, context, scrollable)
+                    (method_dic['_how'], repr(method_dic['_using']), multiple, cacheable, if_exists, context, scrollable)
     return func
 
 def _get_scroller(page_object, container, scrollable):
