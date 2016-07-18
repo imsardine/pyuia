@@ -1,5 +1,7 @@
 import time
-from ..selenium import SeleniumPageObject, find_by, cacheable
+from ..selenium import SeleniumPageObject, cacheable
+from selenium.common.exceptions import NoSuchElementException, StaleElementReferenceException
+from selenium.webdriver.common.by import By
 
 __all__ = ['AppiumPageObject', 'find_by', 'cacheable']
 
