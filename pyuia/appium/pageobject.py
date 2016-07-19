@@ -1,4 +1,4 @@
-import time
+import time, sys
 from ..selenium import SeleniumPageObject, cacheable
 from selenium.common.exceptions import NoSuchElementException, StaleElementReferenceException
 from selenium.webdriver.common.by import By
